@@ -1,0 +1,18 @@
+version: '2'
+
+services:
+  yadda:
+    build: .
+    image: saizo/yadda:local
+    volumes:
+    - ./yadda-api/app:/usr/src/yadda/app
+    environment:
+      - YADDA_CORS_WHITELIST=http://localhost:3001,http://54.172.149.20
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./yadda-ui/dist:/www/data
+  yaddadb:
+    ports:
+      - "27017:27017"

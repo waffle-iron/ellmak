@@ -1,0 +1,23 @@
+version: '2'
+
+volumes:
+  yadda_data:
+
+services:
+  yadda:
+    image: saizo/yadda:dev
+    env_file: ./.yadda/yadda.env
+    links:
+      - yaddadb
+  nginx:
+    image: saizo/yadda_nginx:dev
+    ports:
+      - "80:80"
+      - "443:443"
+    links:
+      - "yadda"
+  yaddadb:
+    image: mongo:latest
+    env_file: ./.yadda/mongodb.env
+    volumes:
+      - yadda_data:/data/db
