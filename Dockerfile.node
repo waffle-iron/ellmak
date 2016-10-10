@@ -1,0 +1,18 @@
+FROM node
+MAINTAINER Jason Ozias <jason.g.ozias@gmail.com>
+
+# Create app directory
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+# Install app dependencies
+COPY yadda-api/package.json /usr/src/app/
+RUN npm install
+
+# Bundle app source
+COPY yadda-api/bin /usr/src/app/bin/
+COPY yadda-api/routes /usr/src/app/routes/
+COPY yadda-api/app.js /usr/src/app/app.js
+
+EXPOSE 3000 
+CMD [ "npm", "start" ]
