@@ -1,6 +1,7 @@
 var webpack = require('webpack')
 var _debug = require('debug')
 var env = require('./env')
+var CopyWebpackPlugin = require('copy-webpack-plugin')
 
 const debug = _debug('app:webpack:config')
 const {__DEV__, __PROD__, __TEST__} = env.globals
@@ -47,7 +48,11 @@ const config = {
   }
 };
 
-config.plugins = []
+config.plugins = [
+  new CopyWebpackPlugin([
+    { from: 'static' }
+  ])
+]
 
 if (__PROD__) {
   debug('Enable plugins for production (OccurenceOrder, Dedupe, & UglifyJS).')

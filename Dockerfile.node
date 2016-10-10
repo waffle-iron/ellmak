@@ -1,18 +1,18 @@
 FROM node
 MAINTAINER Jason Ozias <jason.g.ozias@gmail.com>
 
+# Expose 3000 for linking
+EXPOSE 3000
+
 # Create app directory
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
+RUN mkdir -p /usr/src/yadda
+WORKDIR /usr/src/yadda
 
 # Install app dependencies
-COPY yadda-api/package.json /usr/src/app/
-RUN npm install
+COPY yadda-api/package.json /usr/src/yadda/package.json
+RUN npm i && npm prune && npm dedupe
 
 # Bundle app source
-COPY yadda-api/bin /usr/src/app/bin/
-COPY yadda-api/routes /usr/src/app/routes/
-COPY yadda-api/app.js /usr/src/app/app.js
+COPY yadda-api/app /usr/src/yadda/app
 
-EXPOSE 3000 
-CMD [ "npm", "start" ]
+CMD [ "npm", "start", "--production" ]
