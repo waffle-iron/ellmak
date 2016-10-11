@@ -26,11 +26,11 @@ init =
 
 api : String
 api =
-  "http://quotes.rest/"
+  "/api/v1"
 
 randomQuoteUrl : String
 randomQuoteUrl =
-  api ++ "qod.json"
+  api
 
 fetchRandomQuote : Platform.Task Http.Error String
 fetchRandomQuote =

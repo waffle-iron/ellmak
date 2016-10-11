@@ -2,15 +2,30 @@ var express = require('express');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var db = require('./utils/mongo');
-var log = require('./utils/logger');
-
-log.banner();
-
+var cors = require('cors');
 var routes = require('./routes/index');
+var log = require('./utils/logger');
+var db = require('./utils/mongo');
 
 var router = express.Router();
 var app = express();
+
+log.banner();
+
+var whitelist = process.env.YADDA_CORS_WHITELIST.split(',');
+var corsOptions = {
+  origin: true,
+  // origin: function(origin, callback){
+  //   var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
+  //   callback(null, originIsWhitelisted);
+  // },
+  // credentials: true,
+  // methods: "GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE",
+  // allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions))
+app.options('*', cors());
 
 app.use(logger('combined'));
 app.use(bodyParser.json({limit: '50mb'}));

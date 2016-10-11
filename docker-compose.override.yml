@@ -7,7 +7,7 @@ services:
     volumes:
     - ./yadda-api/app:/usr/src/yadda/app
     environment:
-      - YADDA_CORS_WHITELIST=http://localhost:3001,http://54.172.149.20
+      - YADDA_CORS_WHITELIST=http://localhost:3000
   nginx:
     image: nginx:latest
     volumes:
