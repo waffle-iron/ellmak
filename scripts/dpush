@@ -1,0 +1,30 @@
+#!/usr/bin/python3
+import argparse
+import os
+from os import environ
+from subprocess import check_call
+
+# Store the current directory
+owd = os.getcwd()
+
+# Setup the supported command-line arguments
+parser = argparse.ArgumentParser(description='Push project Docker images')
+parser.add_argument('-n', '--nginx', help='Turn off nginx build', action="store_true")
+parser.add_argument('-y', '--yadda', help='Turn off yadda build', action="store_true")
+
+# Parse the command-line arguments
+args = parser.parse_args()
+
+# Change working directory
+os.chdir(os.path.join(os.path.dirname( __file__ ), '..' ))
+
+if not args.nginx:
+  print('Pushing Yadda nginx image')
+  check_call(["docker", "push", "saizo/yadda_nginx:dev"])
+
+if not args.yadda:
+  print('Pushing Yadda image')
+  check_call(["docker", "push", "saizo/yadda:dev"])
+
+# Change back to the original directory
+os.chdir(owd)

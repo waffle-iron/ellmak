@@ -1,0 +1,45 @@
+#!/usr/bin/python3
+import argparse
+import os
+from os import environ
+from subprocess import check_call
+
+# Store the current directory
+owd = os.getcwd()
+
+# Setup the supported command-line arguments
+parser = argparse.ArgumentParser(description='Build project Docker images')
+parser.add_argument('-n', '--nginx', help='Turn off nginx build', action="store_true")
+parser.add_argument('-y', '--yadda', help='Turn off yadda build', action="store_true")
+
+# Parse the command-line arguments
+args = parser.parse_args()
+
+# Change working directory
+os.chdir(os.path.join(os.path.dirname( __file__ ), '..' ))
+
+if not args.nginx:
+  print('Building DataQ nginx image')
+  folder = 'yadda-ui/dist'
+  for afile in os.listdir(folder):
+    fp = os.path.join(folder, afile)
+    try:
+        if os.path.isfile(fp):
+            print('Removing ' + fp)
+            os.unlink(fp)
+    except Exception as e:
+        print(e)
+  cwd = os.getcwd()
+  os.chdir('yadda-ui')
+  os.environ["NODE_ENV"] = "production"
+  check_call(["npm", "run", "build"])
+  del os.environ["NODE_ENV"]
+  os.chdir(cwd)
+  check_call(["docker", "build", "-t", "saizo/yadda_nginx:dev", "-f", "Dockerfile.nginx", "."])
+
+if not args.yadda:
+  print('Building Yadda image')
+  check_call(["docker", "build", "-t", "saizo/yadda:dev", "-f", "Dockerfile.yadda", "."])
+
+# Change back to the original directory
+os.chdir(owd)
