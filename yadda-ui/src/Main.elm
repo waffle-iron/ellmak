@@ -106,6 +106,7 @@ init =
 
 type Msg
   = AuthMsg Auth.Messages.Msg
+  | Logout
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -113,9 +114,9 @@ update msg model =
     AuthMsg subMsg ->
       let
         ( updatedLoginModel, loginCmd ) =
-          Auth.Updates.update subMsg model.loginModel
+          Auth.Updates.update subMsg model.authModel
       in
-        ( { model | loginModel = updatedLoginModel }, Cmd.map AuthMsg loginCmd )
+        ( { model | authModel = updatedLoginModel }, Cmd.map AuthMsg loginCmd )
     Logout ->
       ( model, Cmd.none )
 
@@ -125,12 +126,12 @@ view model =
     -- Is the user logged in?
     loggedIn : Bool
     loggedIn =
-      if String.length model.loginModel.token > 0 then True else False
+      if String.length model.authModel.token > 0 then True else False
 
     -- Greet a logged in user by username
     greeting : String
     greeting =
-      "Hello, " ++ model.loginModel.username ++ "!"
+      "Hello, " ++ model.authModel.username ++ "!"
 
     homeView =
       if loggedIn then
@@ -144,7 +145,7 @@ view model =
           ]
         ]
       else
-        div [] [ Html.App.map AuthMsg ( Auth.View.view model.loginModel ) ]
+        div [] [ Html.App.map AuthMsg ( Auth.View.view model.authModel ) ]
   in
     div [ class "container" ] [
       h2 [ class "text-center" ] [ text "Yadda: Repository Tracking" ]

@@ -7,7 +7,7 @@ update : Msg -> Authentication -> (Authentication, Cmd Msg)
 update message auth =
   case message of
     Login ->
-      ( auth, Cmd.none )
+      ( auth |> Debug.log "Login", Cmd.none )
     Logout ->
       ( auth, Cmd.none )
     SetPassword password ->
