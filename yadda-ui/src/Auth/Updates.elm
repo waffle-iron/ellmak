@@ -13,4 +13,4 @@ update message auth =
     SetPassword password ->
       ( { auth | password = password }, Cmd.none )
     SetUsername username ->
-      ( { auth | username = username } |> Debug.log auth.username, Cmd.none )
+      ( { auth | username = username }, Cmd.none )

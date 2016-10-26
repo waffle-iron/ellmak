@@ -147,7 +147,25 @@ view model =
       else
         div [] [ Html.App.map AuthMsg ( Auth.View.view model.authModel ) ]
   in
-    div [ class "container" ] [
-      h2 [ class "text-center" ] [ text "Yadda: Repository Tracking" ]
-      , homeView
+    div [ class "container-fluid" ] [
+      div [ class "row" ] [
+        div [ class "col-xs-12 col-lg-8 col-lg-offset-2" ] [
+          nav [ class "navbar navbar-default" ] [
+            div [ class "container-fluid" ] [
+              div [ class "navbar-header" ] [
+                div [ class "navbar-brand" ] [
+                  a [ href "/" ] [
+                    img [ class "brand", alt "Yadda", src "lambda_orange.png" ] []
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+      , div [ class "row" ] [
+        div [ class "col-xs-12 col-lg-8 col-lg-offset-2" ] [
+          homeView
+        ]
+      ]
     ]

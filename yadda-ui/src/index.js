@@ -1,6 +1,6 @@
 'use strict';
 
-require('./styles/main.css');
+require('./styles/core.scss');
 require('./index.html');
 var Elm = require('./Main');
 

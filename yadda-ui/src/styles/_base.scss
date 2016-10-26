@@ -1,0 +1,19 @@
+/*
+Application Settings Go Here
+------------------------------------
+This file acts as a bundler for all variables/mixins/themes, so they
+can easily be swapped out without `core.scss` ever having to know.
+
+For example:
+
+@import './variables/colors';
+@import './variables/components';
+@import './themes/default';
+*/
+.brand {
+  height: 40px;
+  margin-top: -10px;
+}
+.navbar {
+  margin-bottom: 5px;
+}

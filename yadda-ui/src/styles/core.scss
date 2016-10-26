@@ -1,0 +1,35 @@
+@font-face {
+  font-family: 'Notification';
+  src: url('../fonts/notification.eot?s3g3t9');
+  src: url('../fonts/notification.eot?#iefixs3g3t9') format('embedded-opentype'),
+  url('../fonts/notification.woff?s3g3t9') format('woff'),
+  url('../fonts/notification.ttf?s3g3t9') format('truetype'),
+  url('../fonts/notification.svg?s3g3t9#notification') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:global {
+  @import 'base';
+  @import 'vendor/normalize';
+
+  // Some best-practice CSS that's useful for most apps
+  // Just remove them if they're not what you want
+  html {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow-y: scroll;
+  }
+
+  *,
+  *:before,
+  *:after {
+    box-sizing: inherit;
+  }
+}

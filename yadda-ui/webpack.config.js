@@ -1,4 +1,5 @@
 var webpack = require('webpack')
+var cssnano = require('cssnano')
 var _debug = require('debug')
 var env = require('./env')
 var CopyWebpackPlugin = require('copy-webpack-plugin')
@@ -25,7 +26,20 @@ const config = {
     loaders: [
       {
         test: /\.css$/,
-        loader: "style-loader!css-loader"
+        loaders: [
+          'style',
+          'css?sourceMap&-minimize',
+          'postcss'
+        ]
+      },
+      {
+        test: /\.scss$/,
+        loaders: [
+          'style',
+          'css?sourceMap&-minimize',
+          'postcss',
+          'sass?sourceMap'
+        ]
       },
       {
         test: /\.html$/,
@@ -36,7 +50,14 @@ const config = {
         test: /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
         loader: 'elm-webpack'
-      }
+      },
+      { test: /\.woff(\?.*)?$/,  loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/font-woff' },
+      { test: /\.woff2(\?.*)?$/, loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/font-woff2' },
+      { test: /\.otf(\?.*)?$/,   loader: 'file?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=font/opentype' },
+      { test: /\.ttf(\?.*)?$/,   loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/octet-stream' },
+      { test: /\.eot(\?.*)?$/,   loader: 'file?prefix=fonts/&name=[path][name].[ext]' },
+      { test: /\.svg(\?.*)?$/,   loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=image/svg+xml' },
+      { test: /\.(png|jpg)$/,    loader: 'url?limit=8192' }
     ],
 
     noParse: /\.elm$/
@@ -45,8 +66,30 @@ const config = {
   devServer: {
     inline: true,
     stats: 'errors-only'
+  },
+
+  sassLoader: {
+    includePaths: 'src/styles'
   }
 };
+
+config.postcss = [
+  cssnano({
+    autoprefixer: {
+      add: true,
+      remove: true,
+      browsers: ['last 2 versions']
+    },
+
+    discardComments: {
+      removeAll: true
+    },
+
+    safe: true,
+
+    sourcemap: true
+  })
+]
 
 config.plugins = [
   new CopyWebpackPlugin([
