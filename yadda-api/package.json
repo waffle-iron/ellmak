@@ -20,7 +20,7 @@
     "express": "~4.14.0",
     "mongodb": "^2.2.11",
     "morgan": "~1.7.0",
-    "winston": "^2.2.0"
+    "winston": "^2.3.0"
   },
   "devDependencies": {
     "better-npm-run": "0.0.13"
