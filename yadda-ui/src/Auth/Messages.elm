@@ -1,7 +1,11 @@
 module Auth.Messages exposing (..)
 
+import Http
+
 type Msg
-  = Login
+  = AuthError Http.Error
+  | GetTokenSuccess String
+  | Login
   | Logout
   | SetPassword String
   | SetUsername String

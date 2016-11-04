@@ -1,36 +1,33 @@
 module Main exposing (..)
 
-import Html exposing (..)
-import Html.App exposing (map, program)
-import Html.Events exposing (..)
-import Html.Attributes exposing (..)
--- import Http
--- import Http.Decorators
 import Auth.Messages exposing (..)
 import Auth.Model exposing (..)
 import Auth.Updates exposing (..)
 import Auth.View exposing (..)
--- import Json.Decode as Decode exposing (..)
--- import Json.Encode as Encode exposing (..)
+import Html exposing (..)
+import Html.App exposing (map, program)
+import Html.Events exposing (..)
+import Html.Attributes exposing (..)
+import Model exposing (..)
+import Ports exposing (storeModel, removeModel)
 import String exposing (..)
--- import Task exposing (Task)
 
-main : Program Never
+main : Program (Maybe Model)
 main =
-  Html.App.program
+  Html.App.programWithFlags
     { init = init
     , update = update
     , subscriptions = \_ -> Sub.none
     , view = view
     }
 
-type alias Model =
-  { authModel: Authentication
-  }
-
-init : (Model, Cmd Msg)
-init =
-  (Model Auth.Model.new, Cmd.none)
+init : Maybe Model -> (Model, Cmd Msg)
+init model =
+  case model of
+    Just model ->
+      (model, Cmd.none)
+    Nothing ->
+      (Model Auth.Model.new "", Cmd.none)
 
 -- randomQuoteUrl : String
 -- randomQuoteUrl =
@@ -79,31 +76,6 @@ init =
 --     _ ->
 --       ""
 
--- userEncoder : Model -> Encode.Value
--- userEncoder model =
---   Encode.object
---     [ ("username", Encode.string model.username)
---     , ("password", Encode.string model.password)
---     ]
---
--- authUser : Model -> String -> Task Http.Error String
--- authUser model apiUrl =
---   { verb = "POST"
---   , headers = [ ("Content-Type", "application/json" ) ]
---   , url = apiUrl
---   , body = Http.string <| Encode.encode 0 <| userEncoder model
---   }
---   |> Http.send Http.defaultSettings
---   |> Http.fromJson tokenDecoder
---
--- authUserCmd : Model -> String -> Cmd Msg
--- authUserCmd model apiUrl =
---   Task.perform AuthError GetTokenSuccess <| authUser model apiUrl
---
--- tokenDecoder : Decoder String
--- tokenDecoder =
---   "id_token" := Decode.string
-
 type Msg
   = AuthMsg Auth.Messages.Msg
   | Logout
@@ -116,7 +88,7 @@ update msg model =
         ( updatedLoginModel, loginCmd ) =
           Auth.Updates.update subMsg model.authModel
       in
-        ( { model | authModel = updatedLoginModel }, Cmd.map AuthMsg loginCmd )
+        ( { model | authModel = updatedLoginModel }, Cmd.batch [storeModel model, Cmd.map AuthMsg loginCmd] )
     Logout ->
       ( model, Cmd.none )
 
