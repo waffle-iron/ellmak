@@ -10,7 +10,7 @@ WORKDIR /usr/src/yadda
 
 # Install app dependencies
 COPY yadda-api/package.json /usr/src/yadda/package.json
-RUN npm i && npm prune && npm dedupe
+RUN npm i && npm prune && npm dedupe && npm run build
 
 # Bundle app source
 COPY yadda-api/app /usr/src/yadda/app

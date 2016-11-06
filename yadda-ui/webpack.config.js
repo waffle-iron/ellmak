@@ -97,9 +97,25 @@ config.plugins = [
   ])
 ]
 
+if (__DEV__) {
+  debug('Enable plugins for live development (Define, NoErrors).')
+  config.plugins.push(
+    new webpack.DefinePlugin({
+      __DEV__: __DEV__,
+      __PROD__: __PROD__,
+      BASE_URL: "http://localhost:3000/api/v1"
+    }),
+    new webpack.NoErrorsPlugin()
+  )
+}
 if (__PROD__) {
   debug('Enable plugins for production (OccurenceOrder, Dedupe, & UglifyJS).')
   config.plugins.push(
+    new webpack.DefinePlugin({
+      __DEV__: __DEV__,
+      __PROD__: __PROD__,
+      BASE_URL: JSON.stringify('/api/v1')
+    }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.UglifyJsPlugin({

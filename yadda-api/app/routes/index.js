@@ -1,9 +1,9 @@
-var express = require('express');
-var router = express.Router();
+import express from 'express'
 
-// Base App Routes
-router.get('/', function(req, res) {
-  res.send(JSON.stringify({version: 'yadda-api 0.1.0'}));
-});
+const router = express.Router()
 
-module.exports = router;
+router.get('/', (req, res) => {
+  res.send(JSON.stringify({version: 'yadda-api 0.1.0'}))
+})
+
+export default router

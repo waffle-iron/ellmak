@@ -22,29 +22,29 @@ tokenDecoder : Decoder String
 tokenDecoder =
   "id_token" := Decode.string
 
-authUser : Authentication -> String -> Task Http.Error String
-authUser model apiUrl =
+authUser : Authentication -> String -> String -> Task Http.Error String
+authUser model baseUrl apiUrl =
   { verb = "POST"
   , headers = [ ("Content-Type", "application/json" ) ]
-  , url = apiUrl
+  , url = baseUrl ++ apiUrl
   , body = Http.string <| Encode.encode 0 <| userEncoder model
   }
   |> Http.send Http.defaultSettings
   |> Http.fromJson tokenDecoder
 
-authUserCmd : Authentication -> String -> Cmd Msg
-authUserCmd model apiUrl =
-  Task.perform AuthError GetTokenSuccess <| authUser model apiUrl
+authUserCmd : Authentication -> String -> String -> Cmd Msg
+authUserCmd model baseUrl apiUrl =
+  Task.perform AuthError GetTokenSuccess <| authUser model baseUrl apiUrl
 
-update : Msg -> Authentication -> (Authentication, Cmd Msg)
-update message auth =
+update : Msg -> Authentication -> String -> (Authentication, Cmd Msg)
+update message auth baseUrl =
   case message of
     AuthError error ->
-      ( { auth | errorMsg = (toString error) }, Cmd.none )
+      ( { auth | errorMsg = (toString error) } |> Debug.log "Error", Cmd.none )
     GetTokenSuccess newToken ->
       ( { auth | token = newToken, password = "", errorMsg = "" }, Cmd.none )
     Login ->
-      ( auth |> Debug.log "Login", authUserCmd auth authUrl )
+      ( auth, authUserCmd auth baseUrl authUrl )
     Logout ->
       ( auth, Cmd.none )
     SetPassword password ->

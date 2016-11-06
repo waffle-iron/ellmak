@@ -1,9 +1,9 @@
-var express = require('express');
-var router = express.Router();
+import express from 'express'
 
-/* GET random quote */
-router.get('/', function(req, res, next) {
-  res.send(JSON.stringify({quote: 'This is a random quote!!!'}));
-});
+const router = express.Router()
 
-module.exports = router;
+router.get('/', (req, res, next) => {
+  res.send(JSON.stringify({quote: 'This is a random quote!!!'}))
+})
+
+export default router

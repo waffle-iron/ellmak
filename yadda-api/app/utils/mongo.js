@@ -1,29 +1,28 @@
-var mongo = require('mongodb').MongoClient;
+import { MongoClient as mongo } from 'mongodb'
+import store from '../redux/store'
+import { databaseActions } from '../redux/db'
 
-var state = {
-  db: null,
+const connect = (callback) => {
+  const { connected } = databaseActions
+  if (store.getState().db) return callback()
+
+  mongo.connect('mongodb://yaddadb:27017/yaddadb', (err, db) => {
+    if (err) return callback(err)
+    store.dispatch(connected(db))
+    callback()
+  })
 }
 
-module.exports = {
-  connect: function(callback) {
-    if (state.db) return callback()
-
-    mongo.connect('mongodb://yaddadb:27017/yaddadb', function(err, db) {
+const disconnect = (callback) => {
+  const { disconnected } = databaseActions
+  const { db } = store.getState()
+  if (db) {
+    db.close((err, result) => {
       if (err) return callback(err)
-      state.db = db
-      callback()
-    });
-  },
-  get: function() {
-    return state.db
-  },
-  close: function(callback) {
-    if (state.db) {
-      state.db.close(function(err, result) {
-        state.db = null
-        return callback(err)
-      })
-    }
-    return callback()
+      store.dispatch(disconnected())
+      return callback()
+    })
   }
 }
+
+export { connect, disconnect }

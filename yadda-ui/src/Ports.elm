@@ -1,6 +1,6 @@
 port module Ports exposing (..)
 
-import Model exposing (Model)
+import Model exposing (Base)
 
-port storeModel : Model -> Cmd msg
-port removeModel : Model -> Cmd msg
+port storeModel : Base -> Cmd msg
+port removeModel : Base -> Cmd msg
