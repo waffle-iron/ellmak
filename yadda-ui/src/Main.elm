@@ -71,7 +71,7 @@ update msg model =
     Logout ->
       let
         authModel = model.authModel
-        newAuthModel = { authModel | username = "", password = "", token = "" }
+        newAuthModel = { authModel | username = "", password = "", token = "", payload = newPayload }
         newModel = { model | authModel = newAuthModel }
       in
         ( newModel, storeModel newModel )
@@ -126,7 +126,7 @@ view model =
     -- Greet a logged in user by username
     greeting : String
     greeting =
-      "Hello, " ++ model.authModel.username ++ "!"
+      "Hello, " ++ model.authModel.payload.name ++ "!"
 
     versionText : String
     versionText =
@@ -150,11 +150,22 @@ view model =
 
     homeView =
       if loggedIn then
-        div [] [
-          div [id "greeting"] [
-            h3 [ class "text-center" ] [ text greeting ]
-            , p [ class "text-center" ] [ text "You have super-secret access to protected quotes."]
-            , p [ class "text-center" ] [ text "Hello, World!" ]
+        div [ class "row"] [
+          div [ class "col-lg-8" ] [
+            div [ class "panel panel-default"] [
+              div [ class "panel-heading text-right" ] [
+                text model.authModel.payload.name
+              ]
+              , div [ class "panel-body" ] [
+                text "Main"
+              ]
+            ]
+          ]
+          , div [ class "col-lg-4" ] [
+            div [ class "panel panel-default"] [
+              div [ class "panel-heading" ] [ text "Noda" ]
+              , div [ class "panel-body" ] [ text "Testing" ]
+            ]
           ]
         ]
       else

@@ -15,6 +15,10 @@ services:
     volumes:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./yadda-ui/dist:/www/data
-  yaddadb:
-    ports:
-      - "27017:27017"
+  yaddadb-seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.seed
+    image: saizo/yadda-seed:local
+    links:
+      - "yaddadb"

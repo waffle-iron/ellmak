@@ -45,7 +45,13 @@ if (initialState === null) {
     username: "",
     password: "",
     token: "",
-    errorMsg: ""
+    errorMsg: "",
+    payload: {
+      username: "",
+      name: "",
+      iat: 0,
+      expiry: 0
+    }
   };
   initialState.quoteModel = "";
 }

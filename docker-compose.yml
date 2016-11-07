@@ -21,3 +21,5 @@ services:
     env_file: ./.yadda/mongodb.env
     volumes:
       - yadda_data:/data/db
+    ports:
+      - "27017:27017"

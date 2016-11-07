@@ -9,7 +9,7 @@ const connect = (callback) => {
 
   if (dbStore) {
     if (_.isEmpty(dbStore.db)) {
-      mongo.connect('mongodb://yaddadb:27017/yaddadb', (err, db) => {
+      mongo.connect('mongodb://yaddadb:27017/yadda', (err, db) => {
         if (err) return callback(err)
         store.dispatch(connected(db))
         callback()
