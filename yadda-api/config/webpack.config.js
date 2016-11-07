@@ -55,4 +55,26 @@ config = {
   ]
 }
 
+if (__DEV__) {
+  debug('Enable plugins for live development (NoErrors).')
+  config.plugins.push(
+    new webpack.NoErrorsPlugin()
+  )
+}
+
+if (__PROD__) {
+  debug('Enable plugins for production (OccurenceOrder, Dedupe, & UglifyJS).')
+  config.plugins.push(
+    new webpack.optimize.OccurrenceOrderPlugin(),
+    new webpack.optimize.DedupePlugin(),
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        unused: true,
+        dead_code: true,
+        warnings: false
+      }
+    })
+  )
+}
+
 module.exports = config

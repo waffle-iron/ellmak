@@ -39,6 +39,21 @@ if not args.nginx:
 
 if not args.yadda:
   print('Building Yadda image')
+  folder = 'yadda-api/dist'
+  for afile in os.listdir(folder):
+    fp = os.path.join(folder, afile)
+    try:
+        if os.path.isfile(fp):
+            print('Removing ' + fp)
+            os.unlink(fp)
+    except Exception as e:
+        print(e)
+  cwd = os.getcwd()
+  os.chdir('yadda-api')
+  os.environ["NODE_ENV"] = "production"
+  check_call(["npm", "run", "build"])
+  del os.environ["NODE_ENV"]
+  os.chdir(cwd)
   check_call(["docker", "build", "-t", "saizo/yadda:dev", "-f", "Dockerfile.yadda", "."])
 
 # Change back to the original directory
