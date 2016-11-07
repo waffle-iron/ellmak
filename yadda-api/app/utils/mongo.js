@@ -1,16 +1,23 @@
 import { MongoClient as mongo } from 'mongodb'
 import store from '../redux/store'
 import { databaseActions } from '../redux/db'
+import _ from 'lodash'
 
 const connect = (callback) => {
   const { connected } = databaseActions
-  if (store.getState().db) return callback()
+  var dbStore = store.getState().db
 
-  mongo.connect('mongodb://yaddadb:27017/yaddadb', (err, db) => {
-    if (err) return callback(err)
-    store.dispatch(connected(db))
-    callback()
-  })
+  if (dbStore) {
+    if (_.isEmpty(dbStore.db)) {
+      mongo.connect('mongodb://yaddadb:27017/yaddadb', (err, db) => {
+        if (err) return callback(err)
+        store.dispatch(connected(db))
+        callback()
+      })
+    } else {
+      return callback()
+    }
+  }
 }
 
 const disconnect = (callback) => {

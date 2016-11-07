@@ -28,9 +28,12 @@ init : Maybe Base -> (Base, Cmd Msg)
 init model =
   case model of
     Just model ->
-      ( model, Cmd.none )
+      ( model, fetchVersionCmd model )
     Nothing ->
-      ( Base True False "http://localhost:3000/api/v1" "" Auth.Model.new "" , Cmd.none )
+      let
+        model = Base True False "http://localhost:3000/api/v1" "" "v0.1.0" Auth.Model.new ""
+      in
+        ( model , fetchVersionCmd model )
 
 versionDecoder : Decoder String
 versionDecoder =
@@ -66,10 +69,28 @@ update : Msg -> Base -> (Base, Cmd Msg)
 update msg model =
   case msg of
     Logout ->
-      ( model, Cmd.none )
+      let
+        authModel = model.authModel
+        newAuthModel = { authModel | username = "", password = "", token = "" }
+        newModel = { model | authModel = newAuthModel }
+      in
+        ( newModel, storeModel newModel )
 
     HttpError err ->
-      ( model, Cmd.none ) |> Debug.log (toString err)
+      case err of
+          Http.BadResponse _ msg ->
+            case msg of
+              "Unauthorized" ->
+                let
+                  authModel = model.authModel
+                  newAuthModel =
+                    { authModel | username = "", password = "", token = "" }
+                  newModel = { model | authModel = newAuthModel }
+                in
+                  ( newModel, storeModelCmd newModel )
+              _ -> ( model, Cmd.none )
+          _ -> ( model, Cmd.none )
+      |> Debug.log (toString err)
 
     StoreModel ->
       ( model, storeModelCmd model )
@@ -77,11 +98,11 @@ update msg model =
     FetchVersion ->
       ( model, fetchVersionCmd model )
 
-    FetchVersionSuccess version ->
+    FetchVersionSuccess apiVersion ->
       let
-        newModel = { model | blah = version }
+        newModel = { model | apiVersion = apiVersion }
       in
-        ( newModel, storeModelCmd newModel ) |> Debug.log "Blah"
+        ( newModel, storeModelCmd newModel )
 
     AuthMsg subMsg ->
       let
@@ -100,18 +121,32 @@ view model =
     -- Is the user logged in?
     loggedIn : Bool
     loggedIn =
-      if String.length model.authModel.token > 0 then True else False
+      if not <| isEmpty model.authModel.token then True else False
 
     -- Greet a logged in user by username
     greeting : String
     greeting =
       "Hello, " ++ model.authModel.username ++ "!"
 
+    versionText : String
+    versionText =
+      "Development UI " ++ model.uiVersion ++
+        if isEmpty model.apiVersion then
+          ""
+        else
+          " API " ++ model.apiVersion
+
     devText =
       if model.dev then
-        p [ class "navbar-text navbar-right"] [ text ("Development" ++ model.blah) ]
+        versionText
       else
-        p [] []
+        ""
+
+    logoutButton =
+      if loggedIn then
+        button [ class "btn btn-primary", onClick Logout ] [ text "Logout" ]
+      else
+        div [] []
 
     homeView =
       if loggedIn then
@@ -119,10 +154,7 @@ view model =
           div [id "greeting"] [
             h3 [ class "text-center" ] [ text greeting ]
             , p [ class "text-center" ] [ text "You have super-secret access to protected quotes."]
-            , p [ class "text-center" ] [
-              button [ class "btn btn-danger", onClick FetchVersion ] [ text "Version"]
-              , button [ class "btn btn-danger", onClick Logout ] [ text "Logout"]
-            ]
+            , p [ class "text-center" ] [ text "Hello, World!" ]
           ]
         ]
       else
@@ -141,7 +173,12 @@ view model =
                 ]
               ]
               , div [ class "collapse navbar-collapse", id "navbar-collapse-1"] [
-                devText
+                ul [ class "nav navbar-nav navbar-right"] [
+                  li [] [
+                    p [ class "navbar-text" ] [ text devText ]
+                  ]
+                  , li [ class "logout-button" ] [ logoutButton ]
+                ]
               ]
             ]
           ]

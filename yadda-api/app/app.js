@@ -29,7 +29,7 @@ app.use(cors(corsOptions))
 app.options('*', cors())
 
 app.use(jwt({secret: process.env.YADDA_JWT_SECRET}).unless({
-  path: ['/api/v1/login']
+  path: ['/api/v1', '/api/v1/login']
 }))
 
 app.use(logger('combined'))

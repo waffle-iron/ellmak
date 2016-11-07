@@ -103,7 +103,8 @@ if (__DEV__) {
     new webpack.DefinePlugin({
       __DEV__: __DEV__,
       __PROD__: __PROD__,
-      BASE_URL: "http://localhost:3000/api/v1"
+      BASE_URL: JSON.stringify("http://localhost:3000/api/v1"),
+      UI_VERSION: JSON.stringify("v" + require("./package.json").version)
     }),
     new webpack.NoErrorsPlugin()
   )
@@ -114,7 +115,8 @@ if (__PROD__) {
     new webpack.DefinePlugin({
       __DEV__: __DEV__,
       __PROD__: __PROD__,
-      BASE_URL: JSON.stringify('/api/v1')
+      BASE_URL: JSON.stringify("api/v1"),
+      UI_VERSION: JSON.stringify("v" + require("./package.json").version)
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.DedupePlugin(),
