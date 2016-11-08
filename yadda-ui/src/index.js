@@ -53,6 +53,11 @@ if (initialState === null) {
       expiry: 0
     }
   };
+  initialState.notifyModel = {
+    message: "",
+    level: "",
+    hidden: true
+  };
   initialState.quoteModel = "";
 }
 

@@ -1,6 +1,7 @@
 module Model exposing (..)
 
 import Auth.Model exposing (Authentication)
+import Notify.Model exposing (Notification)
 
 type alias Base =
   { dev: Bool
@@ -9,5 +10,6 @@ type alias Base =
   , apiVersion: String
   , uiVersion: String
   , authModel: Authentication
+  , notifyModel: Notification
   , quoteModel: String
   }

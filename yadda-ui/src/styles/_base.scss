@@ -14,9 +14,27 @@ For example:
   height: 40px;
   margin-top: -10px;
 }
+
 .navbar {
   margin-bottom: 5px;
 }
+
 .logout-button {
   padding-top: 7px;
+}
+
+.notification {
+  position: fixed;
+  top: -20em;
+  left: 50%;
+  margin-left: -10%;
+  width: 20%;
+  padding: 1em;
+  overflow: hidden !important;
+  transition: top 0.8s cubic-bezier(.87,-.41,.19,1.44);
+  box-shadow: 5px 5px 5px rgba(0,0,0,.2);
+}
+
+.notification.show {
+  top: 1em !important;
 }

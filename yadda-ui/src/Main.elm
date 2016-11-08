@@ -11,6 +11,10 @@ import Html.Attributes exposing (..)
 import Http
 import Json.Decode as Decode exposing (..)
 import Model exposing (Base)
+import Notify.Messages exposing (..)
+import Notify.Model exposing (..)
+import Notify.Updates exposing (..)
+import Notify.View exposing (..)
 import Ports exposing (storeModel, removeModel)
 import String exposing (..)
 import Task exposing (..)
@@ -31,7 +35,7 @@ init model =
       ( model, fetchVersionCmd model )
     Nothing ->
       let
-        model = Base True False "http://localhost:3000/api/v1" "" "v0.1.0" Auth.Model.new ""
+        model = Base True False "http://localhost:3000/api/v1" "" "v0.1.0" Auth.Model.new Notify.Model.new ""
       in
         ( model , fetchVersionCmd model )
 
@@ -55,7 +59,10 @@ fetchVersionCmd model =
 
 type Msg
   = Logout
+  | Showing
+  | Hiding
   | AuthMsg Auth.Messages.Msg
+  | NotifyMsg Notify.Messages.Msg
   | FetchVersion
   | FetchVersionSuccess String
   | HttpError Http.Error
@@ -68,6 +75,23 @@ storeModelCmd model =
 update : Msg -> Base -> (Base, Cmd Msg)
 update msg model =
   case msg of
+    Showing ->
+      let
+        notifyModel = model.notifyModel
+        (nnm, _) = Notify.Updates.show {
+          notifyModel | level = "success"
+          , message = "Success!"
+        }
+        newModel = { model | notifyModel = nnm }
+      in
+        ( newModel, Cmd.none )
+
+    Hiding ->
+      let
+        (nnm, _) = Notify.Updates.hide model.notifyModel
+      in
+        ( { model | notifyModel = nnm }, Cmd.none )
+
     Logout ->
       let
         authModel = model.authModel
@@ -113,6 +137,15 @@ update msg model =
       in
         ( newModel, Cmd.batch [ storeModelCmd newModel,  Cmd.map AuthMsg authCmd ] )
 
+    NotifyMsg subMsg ->
+      let
+        ( updatedNotifyModel, notifyCmd ) =
+          Notify.Updates.update subMsg model.notifyModel
+        newModel =
+          { model | notifyModel = updatedNotifyModel }
+      in
+        ( newModel, Cmd.batch [ storeModelCmd newModel, Cmd.map NotifyMsg notifyCmd ] )
+
 
 
 view : Base -> Html Msg
@@ -157,7 +190,10 @@ view model =
                 text model.authModel.payload.name
               ]
               , div [ class "panel-body" ] [
-                text "Main"
+                div [ class "btn-group" ] [
+                  button [ class "btn btn-primary", onClick Showing ] [ text "Show" ]
+                  , button [ class "btn btn-primary", onClick Hiding ] [ text "Hide" ]
+                ]
               ]
             ]
           ]
@@ -171,33 +207,36 @@ view model =
       else
         div [] [ Html.App.map AuthMsg ( Auth.View.view model.authModel ) ]
   in
-    div [ class "container-fluid" ] [
-      div [ class "row" ] [
-        div [ class "col-xs-12 col-lg-8 col-lg-offset-2" ] [
-          nav [ class "navbar navbar-default" ] [
-            div [ class "container-fluid" ] [
-              div [ class "navbar-header" ] [
-                div [ class "navbar-brand" ] [
-                  a [ href "/" ] [
-                    img [ class "brand", alt "Yadda", src "lambda_orange.png" ] []
+    div [] [
+      div [ class "container-fluid" ] [
+        div [ class "row" ] [
+          div [ class "col-xs-12 col-lg-8 col-lg-offset-2" ] [
+            nav [ class "navbar navbar-default" ] [
+              div [ class "container-fluid" ] [
+                div [ class "navbar-header" ] [
+                  div [ class "navbar-brand" ] [
+                    a [ href "/" ] [
+                      img [ class "brand", alt "Yadda", src "lambda_orange.png" ] []
+                    ]
                   ]
                 ]
-              ]
-              , div [ class "collapse navbar-collapse", id "navbar-collapse-1"] [
-                ul [ class "nav navbar-nav navbar-right"] [
-                  li [] [
-                    p [ class "navbar-text" ] [ text devText ]
+                , div [ class "collapse navbar-collapse", id "navbar-collapse-1"] [
+                  ul [ class "nav navbar-nav navbar-right"] [
+                    li [] [
+                      p [ class "navbar-text" ] [ text devText ]
+                    ]
+                    , li [ class "logout-button" ] [ logoutButton ]
                   ]
-                  , li [ class "logout-button" ] [ logoutButton ]
                 ]
               ]
             ]
           ]
         ]
-      ]
-      , div [ class "row" ] [
-        div [ class "col-xs-12 col-lg-8 col-lg-offset-2" ] [
-          homeView
+        , div [ class "row" ] [
+          div [ class "col-xs-12 col-lg-8 col-lg-offset-2" ] [
+            homeView
+          ]
         ]
       ]
+      , div [] [ Html.App.map NotifyMsg ( Notify.View.view model.notifyModel ) ]
     ]

@@ -61,7 +61,7 @@ update message auth baseUrl =
     DecodeError error ->
       ( { auth | errorMsg = (toString error) }, Cmd.none )
     DecodeTokenSuccess payload ->
-      ( { auth | payload = payload }, Cmd.none ) |> Debug.log (toString payload)
+      ( { auth | payload = payload }, Cmd.none )
     Login ->
       ( auth, authUserCmd auth baseUrl authUrl )
     Logout ->
