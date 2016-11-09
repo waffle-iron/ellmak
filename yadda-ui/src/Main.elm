@@ -16,7 +16,9 @@ import Notify.Model exposing (..)
 import Notify.Updates exposing (..)
 import Notify.View exposing (..)
 import Ports exposing (storeModel, removeModel)
+import Process exposing (..)
 import String exposing (..)
+import Time exposing (..)
 import Task exposing (..)
 
 main : Program (Maybe Base)
@@ -72,6 +74,10 @@ storeModelCmd : Base -> Cmd Msg
 storeModelCmd model =
   storeModel model
 
+hideCmd : Cmd Msg
+hideCmd =
+  Task.perform (\_ -> Debug.crash "Should not happen!") (\_ -> Hiding) <| Process.sleep (3 * Time.second)
+
 update : Msg -> Base -> (Base, Cmd Msg)
 update msg model =
   case msg of
@@ -84,7 +90,7 @@ update msg model =
         }
         newModel = { model | notifyModel = nnm }
       in
-        ( newModel, Cmd.none )
+        ( newModel, hideCmd )
 
     Hiding ->
       let
