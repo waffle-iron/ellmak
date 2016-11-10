@@ -16,9 +16,7 @@ import Notify.Model exposing (..)
 import Notify.Updates exposing (..)
 import Notify.View exposing (..)
 import Ports exposing (storeModel, removeModel)
-import Process exposing (..)
 import String exposing (..)
-import Time exposing (..)
 import Task exposing (..)
 
 main : Program (Maybe Base)
@@ -61,69 +59,41 @@ fetchVersionCmd model =
 
 type Msg
   = Logout
-  | Showing
-  | Hiding
+  | Show
   | AuthMsg Auth.Messages.Msg
   | NotifyMsg Notify.Messages.Msg
   | FetchVersion
   | FetchVersionSuccess String
   | HttpError Http.Error
-  | StoreModel
 
 storeModelCmd : Base -> Cmd Msg
 storeModelCmd model =
   storeModel model
 
-hideCmd : Cmd Msg
-hideCmd =
-  Task.perform (\_ -> Debug.crash "Should not happen!") (\_ -> Hiding) <| Process.sleep (3 * Time.second)
+showNotification : Base -> String -> String -> ( Base, Cmd Msg )
+showNotification model level message =
+  let
+    notifyModel = model.notifyModel
+    (nnm, ncmd) = Notify.Updates.show { notifyModel | level = level, message = message }
+    newModel = { model | notifyModel = nnm }
+  in
+    ( newModel, Cmd.batch [ storeModelCmd newModel, Cmd.map NotifyMsg ncmd ] )
 
 update : Msg -> Base -> (Base, Cmd Msg)
 update msg model =
   case msg of
-    Showing ->
-      let
-        notifyModel = model.notifyModel
-        (nnm, _) = Notify.Updates.show {
-          notifyModel | level = "success"
-          , message = "Success!"
-        }
-        newModel = { model | notifyModel = nnm }
-      in
-        ( newModel, hideCmd )
-
-    Hiding ->
-      let
-        (nnm, _) = Notify.Updates.hide model.notifyModel
-      in
-        ( { model | notifyModel = nnm }, Cmd.none )
+    Show ->
+      showNotification model "success" "Success!"
 
     Logout ->
       let
-        authModel = model.authModel
-        newAuthModel = { authModel | username = "", password = "", token = "", payload = newPayload }
-        newModel = { model | authModel = newAuthModel }
+        (nam, _) = Auth.Updates.logout model.authModel
+        newModel = { model | authModel = nam }
       in
-        ( newModel, storeModel newModel )
+        ( newModel, storeModelCmd newModel )
 
     HttpError err ->
-      case err of
-          Http.BadResponse _ msg ->
-            case msg of
-              "Unauthorized" ->
-                let
-                  authModel = model.authModel
-                  newAuthModel =
-                    { authModel | username = "", password = "", token = "" }
-                  newModel = { model | authModel = newAuthModel }
-                in
-                  ( newModel, storeModelCmd newModel )
-              _ -> ( model, Cmd.none )
-          _ -> ( model, Cmd.none )
-      |> Debug.log (toString err)
-
-    StoreModel ->
-      ( model, storeModelCmd model )
+      ( model , Cmd.none )
 
     FetchVersion ->
       ( model, fetchVersionCmd model )
@@ -135,22 +105,22 @@ update msg model =
         ( newModel, storeModelCmd newModel )
 
     AuthMsg subMsg ->
-      let
-        ( updatedAuthModel, authCmd ) =
-          Auth.Updates.update subMsg model.authModel model.baseUrl
-        newModel =
-          { model | authModel = updatedAuthModel }
-      in
-        ( newModel, Cmd.batch [ storeModelCmd newModel,  Cmd.map AuthMsg authCmd ] )
+      case subMsg of
+        AuthError err ->
+          showNotification model "danger" "Unable to login, please try again."
+        _ ->
+          let
+            ( updatedAuthModel, authCmd ) = Auth.Updates.update subMsg model.authModel model.baseUrl
+            newModel = { model | authModel = updatedAuthModel }
+          in
+            ( newModel, Cmd.batch [ storeModelCmd newModel,  Cmd.map AuthMsg authCmd ] )
 
     NotifyMsg subMsg ->
       let
-        ( updatedNotifyModel, notifyCmd ) =
-          Notify.Updates.update subMsg model.notifyModel
-        newModel =
-          { model | notifyModel = updatedNotifyModel }
+        ( unm, ncmd ) = Notify.Updates.update subMsg model.notifyModel
+        newModel = { model | notifyModel = unm }
       in
-        ( newModel, Cmd.batch [ storeModelCmd newModel, Cmd.map NotifyMsg notifyCmd ] )
+        ( newModel , Cmd.batch [ storeModelCmd newModel, Cmd.map NotifyMsg ncmd ] )
 
 
 
@@ -185,7 +155,7 @@ view model =
       if loggedIn then
         button [ class "btn btn-primary", onClick Logout ] [ text "Logout" ]
       else
-        div [] []
+        Html.text ""
 
     homeView =
       if loggedIn then
@@ -196,10 +166,7 @@ view model =
                 text model.authModel.payload.name
               ]
               , div [ class "panel-body" ] [
-                div [ class "btn-group" ] [
-                  button [ class "btn btn-primary", onClick Showing ] [ text "Show" ]
-                  , button [ class "btn btn-primary", onClick Hiding ] [ text "Hide" ]
-                ]
+                button [ class "btn btn-primary", onClick Show ] [ text "Show" ]
               ]
             ]
           ]

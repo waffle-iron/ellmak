@@ -51,11 +51,15 @@ decodeTokenCmd token =
     <| Task.fromResult
     <| decodeToken tokenPayloadDecoder token
 
+logout : Authentication -> ( Authentication, Cmd Msg )
+logout model =
+  update Logout model ""
+
 update : Msg -> Authentication -> String -> (Authentication, Cmd Msg)
 update message auth baseUrl =
   case message of
     AuthError error ->
-      ( { auth | errorMsg = (toString error) }, Cmd.none )
+      ( { auth | username = "", password = "", token = "", errorMsg = (toString error) }, Cmd.none )
     GetTokenSuccess newToken ->
       ( { auth | token = newToken, password = "", errorMsg = "" }, decodeTokenCmd newToken )
     DecodeError error ->
@@ -65,7 +69,7 @@ update message auth baseUrl =
     Login ->
       ( auth, authUserCmd auth baseUrl authUrl )
     Logout ->
-      ( auth, Cmd.none )
+      ( { auth | username = "", password = "", token = "", errorMsg = "" }, Cmd.none )
     SetPassword password ->
       ( { auth | password = password }, Cmd.none )
     SetUsername username ->

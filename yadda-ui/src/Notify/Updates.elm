@@ -2,19 +2,22 @@ module Notify.Updates exposing (..)
 
 import Notify.Messages exposing (..)
 import Notify.Model exposing (..)
+import Process exposing (..)
+import Task exposing (..)
+import Time exposing (..)
 
-show : Notification -> (Notification, Cmd Msg)
+show : Notification -> ( Notification, Cmd Msg )
 show model =
   update Show model
 
-hide : Notification -> (Notification, Cmd Msg)
-hide model =
-  update Hide model
+hideCmd : Cmd Msg
+hideCmd =
+  Task.perform (\_ -> Debug.crash "Should not happen!") (\_ -> Hide) <| Process.sleep (3 * Time.second)
 
-update : Msg -> Notification -> (Notification, Cmd Msg)
+update : Msg -> Notification -> ( Notification, Cmd Msg )
 update message notification =
   case message of
     Show ->
-      ( { notification | hidden = False }, Cmd.none )
+      ( { notification | hidden = False }, hideCmd )
     Hide ->
-      ( { notification | hidden = True }, Cmd.none )
+      ( { notification | hidden = True } , Cmd.none )
