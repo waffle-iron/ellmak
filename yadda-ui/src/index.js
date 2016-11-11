@@ -41,7 +41,9 @@ if (initialState === null) {
   initialState.baseUrl = BASE_URL;
   initialState.apiVersion = "";
   initialState.uiVersion = UI_VERSION;
+  initialState.route = "",
   initialState.authModel = {
+    authenticated: false,
     username: "",
     password: "",
     token: "",
@@ -63,10 +65,10 @@ if (initialState === null) {
 
 var elmApp = Elm.Main.fullscreen(initialState);
 
-elmApp.ports.storeModel.subscribe(function(state) {
+elmApp.ports.storeFlags.subscribe(function(state) {
   localStorage.setItem('yadda-model', JSON.stringify(state));
 });
 
-elmApp.ports.removeModel.subscribe(function() {
+elmApp.ports.removeFlags.subscribe(function() {
   localStorage.removeItem('yadda-model');
 });

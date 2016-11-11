@@ -12,7 +12,17 @@ show model =
 
 hideCmd : Cmd Msg
 hideCmd =
-  Task.perform (\_ -> Debug.crash "Should not happen!") (\_ -> Hide) <| Process.sleep (3 * Time.second)
+  Task.perform
+    (\_ -> Debug.crash "Should not happen!")
+    (\_ -> Hide)
+    <| Process.sleep (2.5 * Time.second)
+
+resetCmd : Cmd Msg
+resetCmd =
+  Task.perform
+    (\_ -> Debug.crash "Should not happen!")
+    (\_ -> Reset)
+    <| Process.sleep (2.5 * Time.second)
 
 update : Msg -> Notification -> ( Notification, Cmd Msg )
 update message notification =
@@ -20,4 +30,6 @@ update message notification =
     Show ->
       ( { notification | hidden = False }, hideCmd )
     Hide ->
-      ( { notification | hidden = True } , Cmd.none )
+      ( { notification | hidden = True } , resetCmd )
+    Reset ->
+      ( Notify.Model.new, Cmd.none )

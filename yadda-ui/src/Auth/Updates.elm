@@ -7,6 +7,7 @@ import Json.Decode as Decode exposing (..)
 import Json.Encode as Encode exposing (..)
 import Jwt exposing (..)
 import Task exposing (Task)
+import Time
 
 authUrl : String
 authUrl =
@@ -29,7 +30,7 @@ tokenPayloadDecoder =
         ("username" := Decode.string)
         ("name" := Decode.string)
         ("iat" := Decode.int)
-        ("exp" := Decode.int)
+        ("exp" := Decode.float)
 
 authUser : Authentication -> String -> String -> Task Http.Error String
 authUser model baseUrl apiUrl =
@@ -51,6 +52,21 @@ decodeTokenCmd token =
     <| Task.fromResult
     <| decodeToken tokenPayloadDecoder token
 
+authenticatedCmd : Authentication -> Cmd Msg
+authenticatedCmd model =
+  Task.perform assertNeverHandler (Authenticated << checkExpiry model) Time.now
+
+checkExpiry : Authentication -> Float -> Bool
+checkExpiry model now =
+  let
+    seconds = now / 1000
+  in
+    seconds < model.payload.expiry |> Debug.log ((toString seconds) ++ " " ++ (toString model.payload.expiry))
+
+assertNeverHandler : a -> b
+assertNeverHandler =
+    (\_ -> Debug.crash "This should never happen")
+
 logout : Authentication -> ( Authentication, Cmd Msg )
 logout model =
   update Logout model ""
@@ -58,6 +74,8 @@ logout model =
 update : Msg -> Authentication -> String -> (Authentication, Cmd Msg)
 update message auth baseUrl =
   case message of
+    Authenticated authenticated ->
+      ( { auth | authenticated = authenticated }, Cmd.none )
     AuthError error ->
       ( { auth | username = "", password = "", token = "", errorMsg = (toString error) }, Cmd.none )
     GetTokenSuccess newToken ->
@@ -65,11 +83,14 @@ update message auth baseUrl =
     DecodeError error ->
       ( { auth | errorMsg = (toString error) }, Cmd.none )
     DecodeTokenSuccess payload ->
-      ( { auth | payload = payload }, Cmd.none )
+      let
+        newModel = { auth | payload = payload }
+      in
+        ( newModel, authenticatedCmd newModel )
     Login ->
       ( auth, authUserCmd auth baseUrl authUrl )
     Logout ->
-      ( { auth | username = "", password = "", token = "", errorMsg = "" }, Cmd.none )
+      ( Auth.Model.new, Cmd.none )
     SetPassword password ->
       ( { auth | password = password }, Cmd.none )
     SetUsername username ->

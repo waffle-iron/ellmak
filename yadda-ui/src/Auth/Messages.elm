@@ -5,7 +5,8 @@ import Http
 import Jwt exposing (JwtError)
 
 type Msg
-  = AuthError Http.Error
+  = Authenticated Bool
+  | AuthError Http.Error
   | DecodeError JwtError
   | GetTokenSuccess String
   | DecodeTokenSuccess JwtPayload

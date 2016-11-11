@@ -4,7 +4,7 @@ type alias JwtPayload =
     { username : String
     , name : String
     , iat : Int
-    , expiry : Int
+    , expiry : Float
     }
 
 type alias Authentication =
@@ -13,6 +13,7 @@ type alias Authentication =
   , token: String
   , errorMsg: String
   , payload: JwtPayload
+  , authenticated: Bool
   }
 
 new : Authentication
@@ -22,6 +23,7 @@ new =
   , token = ""
   , errorMsg = ""
   , payload = newPayload
+  , authenticated = False
   }
 
 newPayload : JwtPayload
