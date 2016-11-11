@@ -31,6 +31,7 @@ authenticatedContent model =
             div [ class "panel-heading" ] [ text "Admin" ]
             , div [ class "panel-body" ] [
               button [ class "btn btn-primary", onClick Show ] [ text "Show" ]
+              , button [ class "btn btn-success", onClick Clone ] [ text "Clone" ]
               , button [ class "btn btn-danger", onClick ToHome ] [ text "Home" ]
             ]
           ]

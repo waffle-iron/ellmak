@@ -4,7 +4,8 @@ import Auth.Messages exposing (..)
 import Auth.Updates exposing (logout)
 import Base.Messages exposing (..)
 import Base.Model exposing (modelToFlags, BaseModel)
-import Http
+import Http exposing (..)
+import HttpBuilder exposing (..)
 import Json.Decode as Decode exposing (..)
 import Navigation exposing (..)
 import Navbar.Updates exposing (..)
@@ -44,6 +45,25 @@ showNotification model level message =
   in
     ( newModel, Cmd.batch [ storeModelCmd newModel, Cmd.map NotifyMsg ncmd ] )
 
+cloneDecoder : Decoder String
+cloneDecoder =
+  "clone" := Decode.string
+
+errorDecoder : Decoder String
+errorDecoder =
+  "message" := Decode.string
+
+clone : BaseModel -> Task (HttpBuilder.Error String) (HttpBuilder.Response String)
+clone model =
+  HttpBuilder.get (model.baseUrl ++ "/clone/?repo=blah")
+    |> withHeader "Authorization" ("Bearer " ++ model.authModel.token)
+    |> withCredentials
+    |> HttpBuilder.send (jsonReader cloneDecoder) (jsonReader errorDecoder)
+
+cloneCmd : BaseModel -> Cmd BaseMsg
+cloneCmd model =
+  Task.perform HttpBuilderError CloneSuccess <| clone model
+
 update : BaseMsg -> BaseModel -> ( BaseModel, Cmd BaseMsg )
 update msg model =
   case msg of
@@ -51,7 +71,14 @@ update msg model =
       showNotification model "success" "Success!"
 
     HttpError err ->
-      ( model , Cmd.none )
+      showNotification model "danger" <| toString err
+
+    HttpBuilderError err ->
+      case err of
+        HttpBuilder.BadResponse resp ->
+          showNotification model "danger" <| "Error: " ++ resp.data
+        _ ->
+          showNotification model "danger" (toString err)
 
     FetchVersion ->
       ( model, fetchVersionCmd model )
@@ -92,10 +119,19 @@ update msg model =
     ToHome ->
         ( model, Navigation.newUrl ( "#" ) )
 
+    Clone ->
+        ( model, cloneCmd model )
+
+    CloneSuccess result ->
+      let
+        res = Debug.log <| "CloneSuccess: " ++ (toString result)
+      in
+        ( model, Cmd.none )
+
 urlUpdate : Result String Route -> BaseModel -> ( BaseModel, Cmd BaseMsg )
 urlUpdate result model =
     let
         currentRoute = routeFromResult result
-        newModel = { model | route = currentRoute } |> Debug.log (toString currentRoute)
+        newModel = { model | route = currentRoute }
     in
         ( newModel, storeModelCmd newModel )

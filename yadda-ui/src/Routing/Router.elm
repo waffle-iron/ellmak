@@ -31,7 +31,6 @@ matchers =
 hashParser : Navigation.Location -> Result String Route
 hashParser location =
   location.hash
-    |> Debug.log location.hash
     |> String.dropLeft 1
     |> parse identity matchers
 

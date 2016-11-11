@@ -2,11 +2,14 @@ version: '2'
 
 volumes:
   yadda_data:
+  yadda_repo_data:
 
 services:
   yadda:
     image: saizo/yadda:dev
     env_file: ./.yadda/yadda.env
+    volumes:
+      - yadda_repo_data:/data/repo
     links:
       - yaddadb
   nginx:

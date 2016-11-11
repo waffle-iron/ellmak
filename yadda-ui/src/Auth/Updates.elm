@@ -61,7 +61,7 @@ checkExpiry model now =
   let
     seconds = now / 1000
   in
-    seconds < model.payload.expiry |> Debug.log ((toString seconds) ++ " " ++ (toString model.payload.expiry))
+    seconds < model.payload.expiry
 
 assertNeverHandler : a -> b
 assertNeverHandler =

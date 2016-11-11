@@ -5,8 +5,8 @@ import logger from 'morgan'
 import cookieParser from 'cookie-parser'
 import bodyParser from 'body-parser'
 import routes from './routes/index'
-import quotes from './routes/quotes'
 import login from './routes/login'
+import clone from './routes/clone'
 import { banner, error } from './utils/logger'
 
 const router = express.Router()
@@ -41,7 +41,7 @@ app.use('/api/v1', router)
 
 router.use('/', routes)
 router.use('/login', login)
-router.use('/quotes', quotes)
+router.use('/clone', clone)
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
