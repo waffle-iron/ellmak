@@ -22,7 +22,7 @@ resetCmd =
   Task.perform
     (\_ -> Debug.crash "Should not happen!")
     (\_ -> Reset)
-    <| Process.sleep (2.5 * Time.second)
+    <| Process.sleep (5 * Time.second)
 
 update : Msg -> Notification -> ( Notification, Cmd Msg )
 update message notification =
