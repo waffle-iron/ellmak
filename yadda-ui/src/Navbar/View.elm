@@ -26,7 +26,7 @@ view model =
 
     logoutButton =
       if model.authModel.authenticated then
-        button [ class "btn btn-primary", onClick Logout ] [ text "Logout" ]
+        button [ class "btn btn-default", onClick Logout ] [ text "Logout" ]
       else
         Html.text ""
   in

@@ -3,14 +3,14 @@ module Base.Updates exposing (..)
 import Auth.Messages exposing (..)
 import Auth.Updates exposing (logout)
 import Base.Messages exposing (..)
-import Base.Model exposing (modelToFlags, BaseModel)
+import Base.Model exposing (..)
 import Http exposing (..)
 import HttpBuilder exposing (..)
 import Json.Decode as Decode exposing (..)
 import Navigation exposing (..)
 import Navbar.Updates exposing (..)
 import Notify.Updates exposing (show)
-import Ports.Ports exposing (storeFlags)
+import Ports.Ports exposing (alertify, storeFlags)
 import Routing.Router exposing (..)
 import Task exposing (..)
 
@@ -45,6 +45,14 @@ showNotification model level message =
   in
     ( newModel, Cmd.batch [ storeModelCmd newModel, Cmd.map NotifyMsg ncmd ] )
 
+showAlert : BaseModel -> String -> String -> ( BaseModel, Cmd BaseMsg )
+showAlert model level message =
+  let
+    baseConfig = Base.Model.newConfig
+    config = { baseConfig | message = message, logType = level }
+  in
+    ( model, alertCmd config )
+
 cloneDecoder : Decoder String
 cloneDecoder =
   "clone" := Decode.string
@@ -64,21 +72,28 @@ cloneCmd : BaseModel -> Cmd BaseMsg
 cloneCmd model =
   Task.perform HttpBuilderError CloneSuccess <| clone model
 
+alertCmd : AlertifyConfig -> Cmd BaseMsg
+alertCmd config =
+  alertify config
+
 update : BaseMsg -> BaseModel -> ( BaseModel, Cmd BaseMsg )
 update msg model =
   case msg of
-    Show ->
-      showNotification model "success" "Success!"
+    Alert config ->
+      ( model, alertCmd config )
+
+    Repo repo ->
+      showAlert model "success" repo
 
     HttpError err ->
-      showNotification model "danger" <| toString err
+      showAlert model "error" (toString err)
 
     HttpBuilderError err ->
       case err of
         HttpBuilder.BadResponse resp ->
-          showNotification model "danger" <| "Error: " ++ resp.data
+          showAlert model "error" ("Error: " ++ resp.data)
         _ ->
-          showNotification model "danger" (toString err)
+          showAlert model "error" (toString err)
 
     FetchVersion ->
       ( model, fetchVersionCmd model )
@@ -118,6 +133,9 @@ update msg model =
 
     ToHome ->
         ( model, Navigation.newUrl ( "#" ) )
+
+    ToAdd ->
+        ( model, Navigation.newUrl ( "#addrepo" ) )
 
     Clone ->
         ( model, cloneCmd model )

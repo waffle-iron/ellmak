@@ -4,6 +4,25 @@ import Auth.Model exposing (Authentication)
 import Notify.Model exposing (Notification)
 import Routing.Router exposing (..)
 
+type alias AlertifyConfig =
+  { message: String
+  , position: String
+  , maxItems: Int
+  , closeDelay: Int
+  , cloc: Bool
+  , logType: String
+  }
+
+newConfig : AlertifyConfig
+newConfig =
+  { message = ""
+  , position = "top center"
+  , maxItems = 2
+  , closeDelay = 3000
+  , cloc = False
+  , logType = "success"
+  }
+
 type alias BaseFlags =
   { dev: Bool
   , prod: Bool

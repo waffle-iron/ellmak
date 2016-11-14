@@ -28,8 +28,8 @@ update : Msg -> Notification -> ( Notification, Cmd Msg )
 update message notification =
   case message of
     Show ->
-      ( { notification | hidden = False }, hideCmd )
+      (!) { notification | hidden = False } [ hideCmd, resetCmd ]
     Hide ->
-      ( { notification | hidden = True } , resetCmd )
+      ( { notification | hidden = True } , Cmd.none )
     Reset ->
       ( Notify.Model.new, Cmd.none )

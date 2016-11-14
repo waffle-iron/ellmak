@@ -2,6 +2,7 @@
 
 require('./styles/core.scss');
 require('./index.html');
+var alertify = require('alertify.js');
 
 window.onerror = function(msg, url, line, col, error) {
    // Note that col & error are new to the HTML 5 spec and may not be
@@ -71,4 +72,20 @@ elmApp.ports.storeFlags.subscribe(function(state) {
 
 elmApp.ports.removeFlags.subscribe(function() {
   localStorage.removeItem('yadda-model');
+});
+
+elmApp.ports.alertify.subscribe(function(config) {
+  alertify.logPosition(config.position);
+  alertify.maxLogItems(config.maxItems);
+  alertify.delay(config.closeDelay);
+  alertify.closeLogOnClick(config.cloc);
+
+  var lt = config.logType
+  if (lt === 'success') {
+    alertify.success(config.message);
+  } else if (lt === 'error') {
+    alertify.error(config.message);
+  } else {
+    alertify.log(config.message);
+  }
 });

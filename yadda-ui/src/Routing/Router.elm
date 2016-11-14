@@ -7,6 +7,7 @@ import UrlParser exposing (..)
 type Route
   = Home
   | Admin
+  | AddRepo
   | NotFound
 
 fromString : String -> Route
@@ -18,6 +19,8 @@ fromString routeStr =
       Home
     "Admin" ->
       Admin
+    "AddRepo" ->
+      AddRepo
     _ ->
       NotFound
 
@@ -26,6 +29,7 @@ matchers =
   oneOf
     [ format Home (s "")
     , format Admin ( s "admin")
+    , format AddRepo ( s "addrepo" )
     ]
 
 hashParser : Navigation.Location -> Result String Route
