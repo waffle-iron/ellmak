@@ -1,97 +1,195 @@
 module Auth.Updates exposing (..)
 
 import Auth.Messages exposing (Msg(..))
-import Auth.Model exposing (Authentication, JwtPayload)
+import Auth.Model exposing (Authentication, JwtError(..), JwtPayload)
+import Base64
 import Http
-import Json.Decode as Decode exposing (..)
-import Json.Encode as Encode exposing (..)
-import Jwt exposing (..)
+import Json.Decode exposing (..)
+import Json.Encode exposing (..)
 import Task exposing (Task)
 import Time
 
+
 authUrl : String
 authUrl =
-  "/login"
+    "/login"
 
-userEncoder : Authentication -> Encode.Value
+
+unurl : String -> String
+unurl =
+    let
+        fix c =
+            case c of
+                '-' ->
+                    '+'
+
+                '_' ->
+                    '/'
+
+                c ->
+                    c
+    in
+        String.map fix
+
+
+fixlength : String -> Result JwtError String
+fixlength s =
+    case String.length s % 4 of
+        0 ->
+            Result.Ok s
+
+        2 ->
+            Result.Ok <| String.concat [ s, "==" ]
+
+        3 ->
+            Result.Ok <| String.concat [ s, "=" ]
+
+        _ ->
+            Result.Err <| TokenProcessingError "Wrong length"
+
+
+decodeToken : Decoder a -> String -> Result JwtError a
+decodeToken dec s =
+    let
+        f1 =
+            String.split "." <| unurl s
+
+        f2 =
+            List.map fixlength f1
+    in
+        case f2 of
+            _ :: (Result.Err e) :: _ :: [] ->
+                Result.Err e
+
+            _ :: (Result.Ok encBody) :: _ :: [] ->
+                case Base64.decode encBody of
+                    Result.Ok body ->
+                        case Json.Decode.decodeString dec body of
+                            Result.Ok x ->
+                                Result.Ok x
+
+                            Result.Err e ->
+                                Result.Err (TokenDecodeError e)
+
+                    Result.Err e ->
+                        Result.Err (TokenProcessingError e)
+
+            _ ->
+                Result.Err <| TokenProcessingError "Token has invalid shape"
+
+
+userEncoder : Authentication -> Json.Encode.Value
 userEncoder model =
-  Encode.object
-    [ ("username", Encode.string model.username)
-    , ("password", Encode.string model.password)
-    ]
+    Json.Encode.object
+        [ ( "username", Json.Encode.string model.username )
+        , ( "password", Json.Encode.string model.password )
+        ]
+
 
 tokenDecoder : Decoder String
 tokenDecoder =
-  "id_token" := Decode.string
+    field "id_token" Json.Decode.string
+
 
 tokenPayloadDecoder : Decoder JwtPayload
 tokenPayloadDecoder =
-    Decode.object4 JwtPayload
-        ("username" := Decode.string)
-        ("name" := Decode.string)
-        ("iat" := Decode.int)
-        ("exp" := Decode.float)
+    Json.Decode.map4 JwtPayload
+        (field "username" Json.Decode.string)
+        (field "name" Json.Decode.string)
+        (field "iat" Json.Decode.int)
+        (field "exp" Json.Decode.float)
 
-authUser : Authentication -> String -> String -> Task Http.Error String
+
+authUser : Authentication -> String -> String -> Cmd Msg
 authUser model baseUrl apiUrl =
-  { verb = "POST"
-  , headers = [ ("Content-Type", "application/json" ) ]
-  , url = baseUrl ++ apiUrl
-  , body = Http.string <| Encode.encode 0 <| userEncoder model
-  }
-  |> Http.send Http.defaultSettings
-  |> Http.fromJson tokenDecoder
+    let
+        request =
+            Http.request
+                { method = "POST"
+                , headers = []
+                , url = (baseUrl ++ apiUrl)
+                , body = Http.jsonBody <| userEncoder model
+                , expect = Http.expectJson tokenDecoder
+                , timeout = Nothing
+                , withCredentials = True
+                }
+    in
+        Http.send AuthUserResult request
 
-authUserCmd : Authentication -> String -> String -> Cmd Msg
-authUserCmd model baseUrl apiUrl =
-  Task.perform AuthError GetTokenSuccess <| authUser model baseUrl apiUrl
+
+fromDecodeResult : Result JwtError JwtPayload -> Task JwtError JwtPayload
+fromDecodeResult result =
+    case result of
+        Ok payload ->
+            Task.succeed payload
+
+        Err error ->
+            Task.fail error
+
 
 decodeTokenCmd : String -> Cmd Msg
 decodeTokenCmd token =
-  Task.perform DecodeError DecodeTokenSuccess
-    <| Task.fromResult
-    <| decodeToken tokenPayloadDecoder token
+    Task.attempt DecodeResult (fromDecodeResult <| decodeToken tokenPayloadDecoder token)
+
 
 authenticatedCmd : Authentication -> Cmd Msg
 authenticatedCmd model =
-  Task.perform assertNeverHandler (Authenticated << checkExpiry model) Time.now
+    Task.perform (Authenticated << checkExpiry model) Time.now
+
 
 checkExpiry : Authentication -> Float -> Bool
 checkExpiry model now =
-  let
-    seconds = now / 1000
-  in
-    seconds < model.payload.expiry
+    let
+        seconds =
+            now / 1000
+    in
+        seconds < model.payload.expiry
+
 
 assertNeverHandler : a -> b
 assertNeverHandler =
     (\_ -> Debug.crash "This should never happen")
 
+
 logout : Authentication -> ( Authentication, Cmd Msg )
 logout model =
-  update Logout model ""
+    update Logout model ""
 
-update : Msg -> Authentication -> String -> (Authentication, Cmd Msg)
+
+update : Msg -> Authentication -> String -> ( Authentication, Cmd Msg )
 update message auth baseUrl =
-  case message of
-    Authenticated authenticated ->
-      ( { auth | authenticated = authenticated }, Cmd.none )
-    AuthError error ->
-      ( { auth | username = "", password = "", token = "", errorMsg = (toString error) }, Cmd.none )
-    GetTokenSuccess newToken ->
-      ( { auth | token = newToken, password = "", errorMsg = "" }, decodeTokenCmd newToken )
-    DecodeError error ->
-      ( { auth | errorMsg = (toString error) }, Cmd.none )
-    DecodeTokenSuccess payload ->
-      let
-        newModel = { auth | payload = payload }
-      in
-        ( newModel, authenticatedCmd newModel )
-    Login ->
-      ( auth, authUserCmd auth baseUrl authUrl )
-    Logout ->
-      ( Auth.Model.new, Cmd.none )
-    SetPassword password ->
-      ( { auth | password = password }, Cmd.none )
-    SetUsername username ->
-      ( { auth | username = username }, Cmd.none )
+    case message of
+        Authenticated authenticated ->
+            ( { auth | authenticated = authenticated }, Cmd.none )
+
+        AuthUserResult result ->
+            case result of
+                Ok newToken ->
+                    ( { auth | token = newToken, password = "", errorMsg = "" }, decodeTokenCmd newToken )
+
+                Err error ->
+                    ( { auth | username = "", password = "", token = "", errorMsg = (toString error) }, Cmd.none )
+
+        DecodeResult result ->
+            case result of
+                Ok payload ->
+                    let
+                        newModel =
+                            { auth | payload = payload }
+                    in
+                        ( newModel, authenticatedCmd newModel )
+
+                Err error ->
+                    ( { auth | errorMsg = (toString error) }, Cmd.none )
+
+        Login ->
+            ( auth, authUser auth baseUrl authUrl )
+
+        Logout ->
+            ( Auth.Model.new, Cmd.none )
+
+        SetPassword password ->
+            ( { auth | password = password }, Cmd.none )
+
+        SetUsername username ->
+            ( { auth | username = username }, Cmd.none )

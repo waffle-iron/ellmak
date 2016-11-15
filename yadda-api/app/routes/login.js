@@ -6,9 +6,6 @@ import _ from 'lodash'
 import argon2 from 'argon2'
 
 const router = express.Router()
-// const hashOpts = {
-//   timeCost: 10, memoryCost: 16, parallelism: 4
-// }
 
 router.post('/', (req, res, next) => {
   var username = req.body.username

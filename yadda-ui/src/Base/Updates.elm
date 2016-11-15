@@ -1,155 +1,158 @@
 module Base.Updates exposing (..)
 
-import Auth.Messages exposing (..)
-import Auth.Updates exposing (logout)
+import Auth.Updates
 import Base.Messages exposing (..)
 import Base.Model exposing (..)
 import Http exposing (..)
-import HttpBuilder exposing (..)
 import Json.Decode as Decode exposing (..)
 import Navigation exposing (..)
 import Navbar.Updates exposing (..)
-import Notify.Updates exposing (show)
 import Ports.Ports exposing (alertify, storeFlags)
 import Routing.Router exposing (..)
-import Task exposing (..)
+
 
 versionDecoder : Decoder String
 versionDecoder =
-  "version" := Decode.string
+    field "version" Decode.string
 
-fetchVersion : BaseModel -> Task Http.Error String
+
+fetchVersion : BaseModel -> Cmd BaseMsg
 fetchVersion model =
-  { verb = "GET"
-  , headers = [ ("Authorization", "Bearer " ++ model.authModel.token ) ]
-  , url = model.baseUrl
-  , body = Http.empty
-  }
-  |> Http.send Http.defaultSettings
-  |> Http.fromJson versionDecoder
+    let
+        request =
+            Http.request
+                { method = "GET"
+                , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authModel.token)) ]
+                , url = model.baseUrl
+                , body = Http.emptyBody
+                , expect = Http.expectJson versionDecoder
+                , timeout = Nothing
+                , withCredentials = True
+                }
+    in
+        Http.send FetchVersionRequest request
 
-fetchVersionCmd : BaseModel -> Cmd BaseMsg
-fetchVersionCmd model =
-  Task.perform HttpError FetchVersionSuccess <| fetchVersion model
 
 storeModelCmd : BaseModel -> Cmd BaseMsg
 storeModelCmd model =
-  modelToFlags model |> storeFlags
+    modelToFlags model |> storeFlags
 
-showNotification : BaseModel -> String -> String -> ( BaseModel, Cmd BaseMsg )
-showNotification model level message =
-  let
-    notifyModel = model.notifyModel
-    ( nnm, ncmd ) = show { notifyModel | level = level, message = message }
-    newModel = { model | notifyModel = nnm }
-  in
-    ( newModel, Cmd.batch [ storeModelCmd newModel, Cmd.map NotifyMsg ncmd ] )
 
 showAlert : BaseModel -> String -> String -> ( BaseModel, Cmd BaseMsg )
 showAlert model level message =
-  let
-    baseConfig = Base.Model.newConfig
-    config = { baseConfig | message = message, logType = level }
-  in
-    ( model, alertCmd config )
+    let
+        baseConfig =
+            Base.Model.newConfig
+
+        config =
+            { baseConfig | message = message, logType = level }
+    in
+        ( model, alertCmd config )
+
 
 cloneDecoder : Decoder String
 cloneDecoder =
-  "clone" := Decode.string
+    field "clone" Decode.string
+
 
 errorDecoder : Decoder String
 errorDecoder =
-  "message" := Decode.string
+    field "message" Decode.string
 
-clone : BaseModel -> Task (HttpBuilder.Error String) (HttpBuilder.Response String)
+
+clone : BaseModel -> Cmd BaseMsg
 clone model =
-  HttpBuilder.get (model.baseUrl ++ "/clone/?repo=blah")
-    |> withHeader "Authorization" ("Bearer " ++ model.authModel.token)
-    |> withCredentials
-    |> HttpBuilder.send (jsonReader cloneDecoder) (jsonReader errorDecoder)
+    let
+        request =
+            Http.request
+                { method = "GET"
+                , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authModel.token)) ]
+                , url = (model.baseUrl ++ "/clone/?repo=blah")
+                , body = Http.emptyBody
+                , expect = Http.expectJson cloneDecoder
+                , timeout = Nothing
+                , withCredentials = True
+                }
+    in
+        Http.send CloneRequest request
 
-cloneCmd : BaseModel -> Cmd BaseMsg
-cloneCmd model =
-  Task.perform HttpBuilderError CloneSuccess <| clone model
 
 alertCmd : AlertifyConfig -> Cmd BaseMsg
 alertCmd config =
-  alertify config
+    alertify config
+
 
 update : BaseMsg -> BaseModel -> ( BaseModel, Cmd BaseMsg )
 update msg model =
-  case msg of
-    Alert config ->
-      ( model, alertCmd config )
+    case msg of
+        Alert config ->
+            ( model, alertCmd config )
 
-    Repo repo ->
-      showAlert model "success" repo
+        Repo repo ->
+            showAlert model "success" repo
 
-    HttpError err ->
-      showAlert model "error" (toString err)
+        CloneRequest result ->
+            case result of
+                Ok success ->
+                    let
+                        res =
+                            Debug.log <| "CloneSuccess: " ++ (toString success)
+                    in
+                        ( model, Cmd.none )
 
-    HttpBuilderError err ->
-      case err of
-        HttpBuilder.BadResponse resp ->
-          showAlert model "error" ("Error: " ++ resp.data)
-        _ ->
-          showAlert model "error" (toString err)
+                Err err ->
+                    showAlert model "error" (toString err)
 
-    FetchVersion ->
-      ( model, fetchVersionCmd model )
+        FetchVersionRequest result ->
+            case result of
+                Ok apiVersion ->
+                    let
+                        newModel =
+                            { model | apiVersion = apiVersion }
+                    in
+                        ( newModel, storeModelCmd newModel )
 
-    FetchVersionSuccess apiVersion ->
-      let
-        newModel = { model | apiVersion = apiVersion }
-      in
-        ( newModel, storeModelCmd newModel )
+                Err err ->
+                    showAlert model "error" (toString err)
 
-    AuthMsg subMsg ->
-      case subMsg of
-        AuthError err ->
-          showNotification model "danger" "Unable to login, please try again."
-        _ ->
-          let
-            ( updatedAuthModel, authCmd ) = Auth.Updates.update subMsg model.authModel model.baseUrl
-            newModel = { model | authModel = updatedAuthModel }
-          in
-            ( newModel, Cmd.batch [ storeModelCmd newModel,  Cmd.map AuthMsg authCmd ] )
+        FetchVersion ->
+            ( model, fetchVersion model )
 
-    NotifyMsg subMsg ->
-      let
-        ( unm, ncmd ) = Notify.Updates.update subMsg model.notifyModel
-        newModel = { model | notifyModel = unm }
-      in
-        ( newModel , Cmd.batch [ storeModelCmd newModel, Cmd.map NotifyMsg ncmd ] )
+        AuthMsg subMsg ->
+            let
+                ( updatedAuthModel, authCmd ) =
+                    Auth.Updates.update subMsg model.authModel model.baseUrl
 
-    NavMsg subMsg ->
-      let
-        ( unm, ncmd ) = Navbar.Updates.update subMsg model
-      in
-        ( unm , Cmd.batch [ storeModelCmd unm, Cmd.map NavMsg ncmd ] )
+                newModel =
+                    { model | authModel = updatedAuthModel }
+            in
+                ( newModel, Cmd.batch [ storeModelCmd newModel, Cmd.map AuthMsg authCmd ] )
 
-    ToAdmin ->
-        ( model, Navigation.newUrl ( "#admin" ) )
+        NavMsg subMsg ->
+            let
+                ( unm, ncmd ) =
+                    Navbar.Updates.update subMsg model
+            in
+                ( unm, Cmd.batch [ storeModelCmd unm, Cmd.map NavMsg ncmd ] )
 
-    ToHome ->
-        ( model, Navigation.newUrl ( "#" ) )
+        ToAdmin ->
+            ( model, Navigation.newUrl ("#admin") )
 
-    ToAdd ->
-        ( model, Navigation.newUrl ( "#addrepo" ) )
+        ToHome ->
+            ( model, Navigation.newUrl ("#") )
 
-    Clone ->
-        ( model, cloneCmd model )
+        ToAdd ->
+            ( model, Navigation.newUrl ("#addrepo") )
 
-    CloneSuccess result ->
-      let
-        res = Debug.log <| "CloneSuccess: " ++ (toString result)
-      in
-        ( model, Cmd.none )
+        Clone ->
+            ( model, clone model )
 
-urlUpdate : Result String Route -> BaseModel -> ( BaseModel, Cmd BaseMsg )
-urlUpdate result model =
-    let
-        currentRoute = routeFromResult result
-        newModel = { model | route = currentRoute }
-    in
-        ( newModel, storeModelCmd newModel )
+        LocationChange location ->
+            let
+                currentRoute =
+                    routeFromMaybe <| hashParser location
+
+                newModel =
+                    { model | route = currentRoute }
+            in
+                ( newModel, Cmd.none )

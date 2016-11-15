@@ -1,16 +1,14 @@
 module Auth.Messages exposing (..)
 
-import Auth.Model exposing(JwtPayload)
+import Auth.Model exposing (JwtError, JwtPayload)
 import Http
-import Jwt exposing (JwtError)
+
 
 type Msg
-  = Authenticated Bool
-  | AuthError Http.Error
-  | DecodeError JwtError
-  | GetTokenSuccess String
-  | DecodeTokenSuccess JwtPayload
-  | Login
-  | Logout
-  | SetPassword String
-  | SetUsername String
+    = Authenticated Bool
+    | DecodeResult (Result JwtError JwtPayload)
+    | Login
+    | Logout
+    | SetPassword String
+    | SetUsername String
+    | AuthUserResult (Result Http.Error String)

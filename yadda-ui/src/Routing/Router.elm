@@ -1,52 +1,54 @@
 module Routing.Router exposing (..)
 
 import Navigation
-import String
 import UrlParser exposing (..)
 
+
 type Route
-  = Home
-  | Admin
-  | AddRepo
-  | NotFound
+    = Home
+    | Admin
+    | AddRepo
+    | NotFound
+
 
 fromString : String -> Route
 fromString routeStr =
-  case routeStr of
-    "" ->
-      Home
-    "Home" ->
-      Home
-    "Admin" ->
-      Admin
-    "AddRepo" ->
-      AddRepo
-    _ ->
-      NotFound
+    case routeStr of
+        "" ->
+            Home
+
+        "Home" ->
+            Home
+
+        "Admin" ->
+            Admin
+
+        "AddRepo" ->
+            AddRepo
+
+        _ ->
+            NotFound
+
 
 matchers : Parser (Route -> a) a
 matchers =
-  oneOf
-    [ format Home (s "")
-    , format Admin ( s "admin")
-    , format AddRepo ( s "addrepo" )
-    ]
+    oneOf
+        [ map Home top
+        , map Admin (s "admin")
+        , map AddRepo (s "addrepo")
+        ]
 
-hashParser : Navigation.Location -> Result String Route
+
+hashParser : Navigation.Location -> Maybe Route
 hashParser location =
-  location.hash
-    |> String.dropLeft 1
-    |> parse identity matchers
+    parseHash matchers location
 
-parser : Navigation.Parser (Result String Route)
-parser =
-  Navigation.makeParser hashParser
 
-routeFromResult : Result String Route -> Route
-routeFromResult result =
-  case result of
-    Ok route ->
-      route
+routeFromMaybe : Maybe Route -> Route
+routeFromMaybe maybeRoute =
+    case maybeRoute of
+        Just route ->
+            route
 
-    Err string ->
-      NotFound
+        Nothing ->
+            NotFound

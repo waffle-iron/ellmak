@@ -1,5 +1,15 @@
 module Auth.Model exposing (..)
 
+import Http exposing (..)
+
+
+type JwtError
+    = HttpError Http.Error
+    | TokenExpired
+    | TokenProcessingError String
+    | TokenDecodeError String
+
+
 type alias JwtPayload =
     { username : String
     , name : String
@@ -7,29 +17,32 @@ type alias JwtPayload =
     , expiry : Float
     }
 
+
 type alias Authentication =
-  { username: String
-  , password: String
-  , token: String
-  , errorMsg: String
-  , payload: JwtPayload
-  , authenticated: Bool
-  }
+    { username : String
+    , password : String
+    , token : String
+    , errorMsg : String
+    , payload : JwtPayload
+    , authenticated : Bool
+    }
+
 
 new : Authentication
 new =
-  { username = ""
-  , password = ""
-  , token = ""
-  , errorMsg = ""
-  , payload = newPayload
-  , authenticated = False
-  }
+    { username = ""
+    , password = ""
+    , token = ""
+    , errorMsg = ""
+    , payload = newPayload
+    , authenticated = False
+    }
+
 
 newPayload : JwtPayload
 newPayload =
-  { username = ""
-  , name = ""
-  , iat = 0
-  , expiry = 0
-  }
+    { username = ""
+    , name = ""
+    , iat = 0
+    , expiry = 0
+    }
