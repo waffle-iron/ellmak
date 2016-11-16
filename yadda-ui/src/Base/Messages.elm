@@ -1,5 +1,6 @@
 module Base.Messages exposing (..)
 
+import Auth.Model exposing (AuthError)
 import Auth.Messages exposing (..)
 import Base.Model exposing (AlertifyConfig)
 import Http
@@ -9,7 +10,7 @@ import Navigation exposing (Location)
 
 type BaseMsg
     = AuthMsg Auth.Messages.InternalMsg
-    | AuthAuthError Http.Error
+    | AuthAuthError AuthError
     | NavMsg Navbar.Messages.NavbarMsg
     | FetchVersion
     | FetchVersionRequest (Result Http.Error String)

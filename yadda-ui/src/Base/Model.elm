@@ -18,7 +18,7 @@ type alias AlertifyConfig =
 newConfig : AlertifyConfig
 newConfig =
     { message = ""
-    , position = "top center"
+    , position = "bottom center"
     , maxItems = 2
     , closeDelay = 3000
     , cloc = False

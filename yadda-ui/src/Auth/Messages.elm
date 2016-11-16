@@ -1,6 +1,6 @@
 module Auth.Messages exposing (..)
 
-import Auth.Model exposing (JwtPayload)
+import Auth.Model exposing (AuthError, JwtPayload)
 import Http
 import Jwt exposing (JwtError)
 
@@ -16,7 +16,7 @@ type InternalMsg
 
 
 type ExternalMsg
-    = AuthError Http.Error
+    = AuthenticationError AuthError
 
 
 type Msg
@@ -26,7 +26,7 @@ type Msg
 
 type alias TranslationDictionary msg =
     { onInternalMessage : InternalMsg -> msg
-    , onAuthError : Http.Error -> msg
+    , onAuthError : AuthError -> msg
     }
 
 
@@ -40,5 +40,5 @@ translator { onInternalMessage, onAuthError } msg =
         ForSelf internal ->
             onInternalMessage internal
 
-        ForParent (AuthError error) ->
+        ForParent (AuthenticationError error) ->
             onAuthError error

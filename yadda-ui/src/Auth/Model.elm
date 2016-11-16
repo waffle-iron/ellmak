@@ -1,5 +1,8 @@
 module Auth.Model exposing (..)
 
+import Http exposing (Error(..))
+import Jwt exposing (JwtError)
+
 
 type alias JwtPayload =
     { username : String
@@ -13,10 +16,14 @@ type alias Authentication =
     { username : String
     , password : String
     , token : String
-    , errorMsg : String
     , payload : JwtPayload
     , authenticated : Bool
     }
+
+
+type AuthError
+    = HttpError Http.Error
+    | TokenError JwtError
 
 
 new : Authentication
@@ -24,7 +31,6 @@ new =
     { username = ""
     , password = ""
     , token = ""
-    , errorMsg = ""
     , payload = newPayload
     , authenticated = False
     }

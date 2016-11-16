@@ -1,7 +1,7 @@
 module Auth.Updates exposing (..)
 
 import Auth.Messages exposing (..)
-import Auth.Model exposing (Authentication, JwtPayload)
+import Auth.Model exposing (Authentication, AuthError(..), JwtPayload)
 import Http
 import Json.Decode exposing (..)
 import Json.Encode exposing (..)
@@ -26,15 +26,6 @@ userEncoder model =
 tokenDecoder : Decoder String
 tokenDecoder =
     field "id_token" Json.Decode.string
-
-
-tokenPayloadDecoder : Decoder JwtPayload
-tokenPayloadDecoder =
-    Json.Decode.map4 JwtPayload
-        (field "username" Json.Decode.string)
-        (field "name" Json.Decode.string)
-        (field "iat" Json.Decode.int)
-        (field "exp" Json.Decode.float)
 
 
 authUser : Authentication -> String -> String -> Cmd Msg
@@ -62,6 +53,15 @@ fromDecodeResult result =
 
         Err error ->
             Task.fail error
+
+
+tokenPayloadDecoder : Decoder JwtPayload
+tokenPayloadDecoder =
+    Json.Decode.map4 JwtPayload
+        (field "username" Json.Decode.string)
+        (field "name" Json.Decode.string)
+        (field "iat" Json.Decode.int)
+        (field "exp" Json.Decode.float)
 
 
 decodeTokenCmd : String -> Cmd Msg
@@ -93,6 +93,11 @@ generateParentMsg externalMsg =
     Task.perform ForParent (Task.succeed externalMsg)
 
 
+authError : Authentication -> AuthError -> ( Authentication, Cmd Msg )
+authError auth error =
+    ( { auth | username = "", password = "", token = "" }, generateParentMsg (AuthenticationError error) )
+
+
 update : InternalMsg -> Authentication -> String -> ( Authentication, Cmd Msg )
 update message auth baseUrl =
     case message of
@@ -102,10 +107,10 @@ update message auth baseUrl =
         AuthUserResult result ->
             case result of
                 Ok newToken ->
-                    ( { auth | token = newToken, password = "", errorMsg = "" }, decodeTokenCmd newToken )
+                    ( { auth | token = newToken, password = "" }, decodeTokenCmd newToken )
 
                 Err error ->
-                    ( { auth | username = "", password = "", token = "", errorMsg = (toString error) }, generateParentMsg (AuthError error) )
+                    authError auth (HttpError error)
 
         DecodeResult result ->
             case result of
@@ -117,7 +122,7 @@ update message auth baseUrl =
                         ( newModel, authenticatedCmd newModel )
 
                 Err error ->
-                    ( { auth | errorMsg = (toString error) }, Cmd.none )
+                    authError auth (TokenError error)
 
         Login ->
             ( auth, authUser auth baseUrl authUrl )

@@ -1,11 +1,13 @@
 module Base.Updates exposing (..)
 
 import Auth.Messages exposing (..)
+import Auth.Model exposing (AuthError(..))
 import Auth.Updates
 import Base.Messages exposing (..)
 import Base.Model exposing (..)
 import Http exposing (..)
 import Json.Decode as Decode exposing (..)
+import Jwt exposing (JwtError(TokenProcessingError, TokenDecodeError))
 import Navigation exposing (..)
 import Navbar.Updates exposing (..)
 import Ports.Ports exposing (alertify, storeFlags)
@@ -54,11 +56,6 @@ showAlert model level message =
 cloneDecoder : Decoder String
 cloneDecoder =
     field "clone" Decode.string
-
-
-errorDecoder : Decoder String
-errorDecoder =
-    field "message" Decode.string
 
 
 clone : BaseModel -> Cmd BaseMsg
@@ -136,19 +133,52 @@ update msg model =
 
         AuthAuthError error ->
             case error of
-                BadStatus resp ->
-                    let
-                        message =
-                            (toString resp.status.code)
-                                ++ " "
-                                ++ resp.status.message
-                                ++ ": "
-                                ++ resp.body
-                    in
-                        showAlert model "error" message
+                HttpError httpError ->
+                    case httpError of
+                        BadStatus resp ->
+                            let
+                                message =
+                                    (toString resp.status.code)
+                                        ++ " "
+                                        ++ resp.status.message
+                                        ++ ": "
+                                        ++ resp.body
+                            in
+                                showAlert model "error" message
 
-                _ ->
-                    ( model, Cmd.none )
+                        BadPayload debug resp ->
+                            let
+                                message =
+                                    (toString resp.status.code)
+                                        ++ " "
+                                        ++ resp.status.message
+                                        ++ ": "
+                                        ++ resp.body
+                                        ++ ": "
+                                        ++ debug
+                            in
+                                showAlert model "error" message
+
+                        BadUrl url ->
+                            let
+                                message =
+                                    "Bad Url: " ++ url
+                            in
+                                showAlert model "error" message
+
+                        _ ->
+                            showAlert model "error" (toString httpError)
+
+                TokenError tokenError ->
+                    case tokenError of
+                        TokenProcessingError tpe ->
+                            showAlert model "error" tpe
+
+                        TokenDecodeError tde ->
+                            showAlert model "error" tde
+
+                        _ ->
+                            showAlert model "error" (toString tokenError)
 
         NavMsg subMsg ->
             let
