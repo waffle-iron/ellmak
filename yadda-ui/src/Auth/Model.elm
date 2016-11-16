@@ -1,14 +1,5 @@
 module Auth.Model exposing (..)
 
-import Http exposing (..)
-
-
-type JwtError
-    = HttpError Http.Error
-    | TokenExpired
-    | TokenProcessingError String
-    | TokenDecodeError String
-
 
 type alias JwtPayload =
     { username : String

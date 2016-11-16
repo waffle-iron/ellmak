@@ -1,7 +1,8 @@
 module Auth.Messages exposing (..)
 
-import Auth.Model exposing (JwtError, JwtPayload)
+import Auth.Model exposing (JwtPayload)
 import Http
+import Jwt exposing (JwtError)
 
 
 type Msg
