@@ -32,8 +32,25 @@ view model =
 
         AddRepo ->
             panelContent "Add Repository"
-                [ button [ class "btn btn-default", onClick ToHome ] [ text "Cancel" ]
-                , button [ class "btn btn-default" ] [ text "Add" ]
+                [ Html.form []
+                    [ div [ class "form-group" ]
+                        [ label [ for "repo-url" ] [ text "Repository URL" ]
+                        , div [ class "input-group" ]
+                            [ input [ type_ "text", class "form-control", id "repo-url", placeholder "git@github.com:CraZySacX/yadda.git" ] []
+                            , span [ class "input-group-addon" ]
+                                [ span [ class "glyphicon glyphicon-question-sign" ] []
+                                ]
+                            ]
+                        ]
+                    , div [ class "form-group" ]
+                        [ label [ for "repo-refs" ] [ text "Branches to Monitor" ]
+                        , textarea [ class "form-control", id "repo-refs", placeholder "origin/master" ] []
+                        ]
+                    , div [ class "btn-group" ]
+                        [ button [ class "btn btn-default" ] [ text "Add" ]
+                        , button [ class "btn btn-default", onClick ToHome ] [ text "Cancel" ]
+                        ]
+                    ]
                 ]
 
         NotFound ->
