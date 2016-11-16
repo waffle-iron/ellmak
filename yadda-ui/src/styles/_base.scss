@@ -57,5 +57,6 @@ For example:
   text-align: center;
   border-radius: 5px 10px !important;
   box-shadow: 5px 5px 5px rgba(0,0,0,0.2) !important;
-  transition: all 0.5s cubic-bezier(.87,0,.19,2.00) !important;
+  -webkit-transition: all 0.5s cubic-bezier(.87,0,.19,0) !important;
+  transition: all 0.5s cubic-bezier(.87,-.41,.19,2.00) !important;
 }
