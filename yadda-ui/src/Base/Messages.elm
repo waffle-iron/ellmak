@@ -8,7 +8,8 @@ import Navigation exposing (Location)
 
 
 type BaseMsg
-    = AuthMsg Auth.Messages.Msg
+    = AuthMsg Auth.Messages.InternalMsg
+    | AuthAuthError Http.Error
     | NavMsg Navbar.Messages.NavbarMsg
     | FetchVersion
     | FetchVersionRequest (Result Http.Error String)

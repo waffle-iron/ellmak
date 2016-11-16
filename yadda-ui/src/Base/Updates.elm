@@ -1,5 +1,6 @@
 module Base.Updates exposing (..)
 
+import Auth.Messages exposing (..)
 import Auth.Updates
 import Base.Messages exposing (..)
 import Base.Model exposing (..)
@@ -82,6 +83,11 @@ alertCmd config =
     alertify config
 
 
+translator : Auth.Messages.Translator BaseMsg
+translator =
+    Auth.Messages.translator { onInternalMessage = AuthMsg, onAuthError = AuthAuthError }
+
+
 update : BaseMsg -> BaseModel -> ( BaseModel, Cmd BaseMsg )
 update msg model =
     case msg of
@@ -126,7 +132,23 @@ update msg model =
                 newModel =
                     { model | authModel = updatedAuthModel }
             in
-                ( newModel, Cmd.batch [ storeModelCmd newModel, Cmd.map AuthMsg authCmd ] )
+                ( newModel, Cmd.batch [ storeModelCmd newModel, Cmd.map translator authCmd ] )
+
+        AuthAuthError error ->
+            case error of
+                BadStatus resp ->
+                    let
+                        message =
+                            (toString resp.status.code)
+                                ++ " "
+                                ++ resp.status.message
+                                ++ ": "
+                                ++ resp.body
+                    in
+                        showAlert model "error" message
+
+                _ ->
+                    ( model, Cmd.none )
 
         NavMsg subMsg ->
             let

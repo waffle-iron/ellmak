@@ -3,7 +3,7 @@ module Base.Init exposing (init, locationToMsg)
 import Auth.Updates exposing (authenticatedCmd)
 import Base.Model exposing (..)
 import Base.Messages exposing (..)
-import Base.Updates exposing (fetchVersion)
+import Base.Updates exposing (fetchVersion, translator)
 import Navigation exposing (Location)
 import Routing.Router exposing (..)
 
@@ -11,7 +11,7 @@ import Routing.Router exposing (..)
 authVersionCmd : BaseModel -> Cmd BaseMsg
 authVersionCmd model =
     Cmd.batch
-        [ Cmd.map AuthMsg (authenticatedCmd model.authModel)
+        [ Cmd.map translator (authenticatedCmd model.authModel)
         , fetchVersion model
         ]
 

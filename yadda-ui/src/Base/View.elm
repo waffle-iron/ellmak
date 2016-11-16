@@ -3,6 +3,7 @@ module Base.View exposing (..)
 import Auth.View exposing (..)
 import Base.Messages exposing (..)
 import Base.Model exposing (BaseModel)
+import Base.Updates exposing (translator)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import LeftPanel.View exposing (..)
@@ -23,7 +24,7 @@ mainContent model =
     if model.authModel.authenticated then
         authenticatedContent model
     else
-        Html.map AuthMsg (Auth.View.view model.authModel)
+        Html.map translator (Auth.View.view model.authModel)
 
 
 view : BaseModel -> Html BaseMsg

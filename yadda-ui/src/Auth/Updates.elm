@@ -1,6 +1,6 @@
 module Auth.Updates exposing (..)
 
-import Auth.Messages exposing (Msg(..))
+import Auth.Messages exposing (..)
 import Auth.Model exposing (Authentication, JwtPayload)
 import Http
 import Json.Decode exposing (..)
@@ -51,7 +51,7 @@ authUser model baseUrl apiUrl =
                 , withCredentials = True
                 }
     in
-        Http.send AuthUserResult request
+        Http.send (ForSelf << AuthUserResult) request
 
 
 fromDecodeResult : Result JwtError JwtPayload -> Task JwtError JwtPayload
@@ -66,12 +66,12 @@ fromDecodeResult result =
 
 decodeTokenCmd : String -> Cmd Msg
 decodeTokenCmd token =
-    Task.attempt DecodeResult (fromDecodeResult <| decodeToken tokenPayloadDecoder token)
+    Task.attempt (ForSelf << DecodeResult) (fromDecodeResult <| decodeToken tokenPayloadDecoder token)
 
 
 authenticatedCmd : Authentication -> Cmd Msg
 authenticatedCmd model =
-    Task.perform (Authenticated << checkExpiry model) Time.now
+    Task.perform (ForSelf << Authenticated << checkExpiry model) Time.now
 
 
 checkExpiry : Authentication -> Float -> Bool
@@ -83,17 +83,17 @@ checkExpiry model now =
         seconds < model.payload.expiry
 
 
-assertNeverHandler : a -> b
-assertNeverHandler =
-    (\_ -> Debug.crash "This should never happen")
-
-
 logout : Authentication -> ( Authentication, Cmd Msg )
 logout model =
     update Logout model ""
 
 
-update : Msg -> Authentication -> String -> ( Authentication, Cmd Msg )
+generateParentMsg : ExternalMsg -> Cmd Msg
+generateParentMsg externalMsg =
+    Task.perform ForParent (Task.succeed externalMsg)
+
+
+update : InternalMsg -> Authentication -> String -> ( Authentication, Cmd Msg )
 update message auth baseUrl =
     case message of
         Authenticated authenticated ->
@@ -105,7 +105,7 @@ update message auth baseUrl =
                     ( { auth | token = newToken, password = "", errorMsg = "" }, decodeTokenCmd newToken )
 
                 Err error ->
-                    ( { auth | username = "", password = "", token = "", errorMsg = (toString error) }, Cmd.none )
+                    ( { auth | username = "", password = "", token = "", errorMsg = (toString error) }, generateParentMsg (AuthError error) )
 
         DecodeResult result ->
             case result of
