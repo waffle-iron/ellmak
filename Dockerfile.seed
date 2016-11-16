@@ -8,5 +8,4 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 
 COPY config/db db
 
-CMD dockerize -wait tcp://yaddadb:27017 mongo -h yaddadb -d yadda --eval "db.dropDatabase()"
-CMD dockerize -wait tcp://yaddadb:27017 mongorestore -h yaddadb -d yadda db/yadda
+CMD dockerize -wait tcp://yaddadb:27017 mongo -h yaddadb yadda --eval "db.dropDatabase()" && mongorestore -h yaddadb -d yadda db/yadda
