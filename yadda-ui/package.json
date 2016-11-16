@@ -58,6 +58,6 @@
     "yargs": "^6.4.0"
   },
   "dependencies": {
-    "alertify.js": "^1.0.12"
+    "alertify.js": "git+ssh://git@github.com/CraZySacX/alertify.js.git"
   }
 }
