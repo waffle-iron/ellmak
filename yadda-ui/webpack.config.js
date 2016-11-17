@@ -11,8 +11,6 @@ const {__DEV__, __INT__, __STG__, __PROD__} = env.globals
 debug('Webpack Configuration')
 
 const config = {
-  entry: [ 'bootstrap-loader', './src/index.js', 'webpack/hot/dev-server' ],
-
   output: {
     path: "./dist",
     filename: 'index.js'
@@ -36,14 +34,14 @@ const config = {
     noParse: /\.elm$/
   },
 
-devServer: {
-  historyApiFallback: true,
-  hot: true,
-  inline: true,
-  progress: true,
+  devServer: {
+    historyApiFallback: true,
+    hot: true,
+    inline: true,
+    progress: true,
 
-  // Display only errors to reduce the amount of output.
-  stats: 'errors-only',
+    // Display only errors to reduce the amount of output.
+    stats: 'errors-only',
   },
 
   sassLoader: {
@@ -51,14 +49,10 @@ devServer: {
   }
 };
 
-config.plugins = [
-  new CopyWebpackPlugin([
-    { from: 'static' }
-  ])
-]
+config.plugins = [new CopyWebpackPlugin([{from: 'static'}])]
 
 if (__DEV__) {
-  debug('Enable plugins for live development (Define, NoErrors).')
+  debug('Enable plugins for live development (HotModuleReplacementPlugin, Define, NoErrors).')
   config.plugins.push(
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
@@ -72,6 +66,8 @@ if (__DEV__) {
     }),
     new webpack.NoErrorsPlugin()
   )
+
+  config.entry = [ 'bootstrap-loader', './src/index.js', 'webpack/hot/dev-server' ]
 }
 if (__INT__ || __STG__ || __PROD__) {
   debug('Enable plugins for production (Define, OccurenceOrder, Dedupe, & UglifyJS).')
@@ -95,6 +91,8 @@ if (__INT__ || __STG__ || __PROD__) {
       }
     })
   )
+
+  config.entry = [ 'bootstrap-loader', './src/index.js' ]
 }
 
 module.exports = config
