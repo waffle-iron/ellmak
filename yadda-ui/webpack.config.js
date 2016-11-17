@@ -1,19 +1,20 @@
 var webpack = require('webpack')
 var cssnano = require('cssnano')
+var path = require('path')
 var _debug = require('debug')
 var env = require('./env')
 var CopyWebpackPlugin = require('copy-webpack-plugin')
 
 const debug = _debug('app:webpack:config')
-const {__DEV__, __PROD__, __TEST__} = env.globals
+const {__DEV__, __INT__, __STG__, __PROD__} = env.globals
 
 debug('Webpack Configuration')
 
 const config = {
-  entry: './src/index.js',
+  entry: [ 'bootstrap-loader', './src/index.js', 'webpack/hot/dev-server' ],
 
   output: {
-    path: './dist',
+    path: "./dist",
     filename: 'index.js'
   },
 
@@ -24,72 +25,31 @@ const config = {
 
   module: {
     loaders: [
-      {
-        test: /\.css$/,
-        loaders: [
-          'style',
-          'css?sourceMap&-minimize',
-          'postcss'
-        ]
-      },
-      {
-        test: /\.scss$/,
-        loaders: [
-          'style',
-          'css?sourceMap&-minimize',
-          'postcss',
-          'sass?sourceMap'
-        ]
-      },
-      {
-        test: /\.html$/,
-        exclude: /node_modules/,
-        loader: 'file?name=[name].[ext]'
-      },
-      {
-        test: /\.elm$/,
-        exclude: [/elm-stuff/, /node_modules/],
-        loader: 'elm-webpack'
-      },
-      { test: /\.woff(\?.*)?$/,  loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/font-woff' },
-      { test: /\.woff2(\?.*)?$/, loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/font-woff2' },
-      { test: /\.otf(\?.*)?$/,   loader: 'file?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=font/opentype' },
-      { test: /\.ttf(\?.*)?$/,   loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/octet-stream' },
-      { test: /\.eot(\?.*)?$/,   loader: 'file?prefix=fonts/&name=[path][name].[ext]' },
-      { test: /\.svg(\?.*)?$/,   loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=image/svg+xml' },
-      { test: /\.(png|jpg)$/,    loader: 'url?limit=8192' }
+      {test: /\.css$/, loaders: ['style', 'css?sourceMap&-minimize' ]},
+      {test: /\.scss$/, loaders: ['style', 'css?sourceMap&-minimize', 'sass?sourceMap']},
+      {test: /\.html$/, exclude: /node_modules/, loader: 'file?name=[name].[ext]' },
+      {test: /\.(png|jpg|svg|woff|woff2)?(\?v=\d+.\d+.\d+)?$/, loader: 'url-loader?limit=8192'},
+      {test: /\.(eot|ttf)$/, loader: 'file-loader'},
+      {test: /\.elm$/, exclude: [/elm-stuff/, /node_modules/], loader: 'elm-webpack'}
     ],
 
     noParse: /\.elm$/
   },
 
-  devServer: {
-    inline: true,
-    stats: 'errors-only'
+devServer: {
+  historyApiFallback: true,
+  hot: true,
+  inline: true,
+  progress: true,
+
+  // Display only errors to reduce the amount of output.
+  stats: 'errors-only',
   },
 
   sassLoader: {
-    includePaths: 'src/styles'
+    includePaths: [path.resolve(__dirname, "./src/styles")]
   }
 };
-
-config.postcss = [
-  cssnano({
-    autoprefixer: {
-      add: true,
-      remove: true,
-      browsers: ['last 2 versions']
-    },
-
-    discardComments: {
-      removeAll: true
-    },
-
-    safe: true,
-
-    sourcemap: true
-  })
-]
 
 config.plugins = [
   new CopyWebpackPlugin([
@@ -100,23 +60,26 @@ config.plugins = [
 if (__DEV__) {
   debug('Enable plugins for live development (Define, NoErrors).')
   config.plugins.push(
+    new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
       __DEV__: __DEV__,
       __PROD__: __PROD__,
       BASE_URL: JSON.stringify("http://localhost:3000/api/v1"),
-      UI_VERSION: JSON.stringify("v" + require("./package.json").version)
+      UI_VERSION: JSON.stringify("v" + require("./package.json").version),
+      API_VERSION: JSON.stringify("v" + require("../yadda-api/package.json").version)
     }),
     new webpack.NoErrorsPlugin()
   )
 }
-if (__PROD__) {
-  debug('Enable plugins for production (OccurenceOrder, Dedupe, & UglifyJS).')
+if (__INT__ || __STG__ || __PROD__) {
+  debug('Enable plugins for production (Define, OccurenceOrder, Dedupe, & UglifyJS).')
   config.plugins.push(
     new webpack.DefinePlugin({
       __DEV__: __DEV__,
       __PROD__: __PROD__,
       BASE_URL: JSON.stringify("api/v1"),
-      UI_VERSION: JSON.stringify("v" + require("./package.json").version)
+      UI_VERSION: JSON.stringify("v" + require("./package.json").version),
+      API_VERSION: JSON.stringify("v" + require("../yadda-api/package.json").version)
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.DedupePlugin(),
