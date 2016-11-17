@@ -26,18 +26,18 @@ type AuthError
     | TokenError JwtError
 
 
-new : Authentication
-new =
+defaultAuthentication : Authentication
+defaultAuthentication =
     { username = ""
     , password = ""
     , token = ""
-    , payload = newPayload
+    , payload = defaultPayload
     , authenticated = False
     }
 
 
-newPayload : JwtPayload
-newPayload =
+defaultPayload : JwtPayload
+defaultPayload =
     { username = ""
     , name = ""
     , iat = 0

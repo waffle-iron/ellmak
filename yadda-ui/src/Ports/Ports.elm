@@ -1,12 +1,13 @@
 port module Ports.Ports exposing (..)
 
-import Base.Model exposing (AlertifyConfig, BaseFlags)
+import Base.Model exposing (AlertifyConfig)
+import Flags.Flags exposing (Flags)
 
 
-port storeFlags : BaseFlags -> Cmd msg
+port storeFlags : Flags -> Cmd msg
 
 
-port removeFlags : BaseFlags -> Cmd msg
+port removeFlags : Flags -> Cmd msg
 
 
 port alertify : AlertifyConfig -> Cmd msg

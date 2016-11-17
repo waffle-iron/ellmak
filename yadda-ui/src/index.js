@@ -32,46 +32,45 @@ if (__PROD__) {
 
 var Elm = require('./Main');
 
-var storedState = localStorage.getItem('yadda-model');
-var initialState = storedState ? JSON.parse(storedState) : null;
+var storedFlags = localStorage.getItem('yadda-flags');
+var flags = storedFlags ? JSON.parse(storedFlags) : null;
 
-if (initialState === null) {
-  initialState = {};
-  initialState.dev = __DEV__;
-  initialState.prod = __PROD__;
-  initialState.baseUrl = BASE_URL;
-  initialState.apiVersion = "";
-  initialState.uiVersion = UI_VERSION;
-  initialState.route = "",
-  initialState.authModel = {
-    authenticated: false,
-    username: "",
-    password: "",
-    token: "",
-    errorMsg: "",
-    payload: {
-      username: "",
-      name: "",
-      iat: 0,
-      expiry: 0
-    }
-  };
-  initialState.notifyModel = {
-    message: "",
-    level: "",
-    hidden: true
-  };
-  initialState.quoteModel = "";
+if (flags === null) {
+  flags = {};
+  // Set the enviroment flag
+  if (__DEV__) {
+    flags.env = "development"
+  } else if (__INT__) {
+    flags.env = "integration"
+  } else if (__STG__) {
+    flags.env = "staging"
+  } else if (__PROD__) {
+    flags.env = "production"
+  }
+
+  // Set the base API URL (the value is replaced by the webpack DefinePlugin)
+  flags.baseUrl = BASE_URL;
+
+  // Set the version information (the value is replaced by the webpack DefinePlugin)
+  flags.apiVersion = API_VERSION;
+  flags.uiVersion = UI_VERSION;
+
+  // Set the auth related state
+  flags.token = ""
+  flags.expiry = 0
+
+  // Set the home route
+  flags.route = ""
 }
 
-var elmApp = Elm.Main.fullscreen(initialState);
+var elmApp = Elm.Main.fullscreen(flags);
 
-elmApp.ports.storeFlags.subscribe(function(state) {
-  localStorage.setItem('yadda-model', JSON.stringify(state));
+elmApp.ports.storeFlags.subscribe(function(flags) {
+  localStorage.setItem('yadda-flags', JSON.stringify(flags));
 });
 
 elmApp.ports.removeFlags.subscribe(function() {
-  localStorage.removeItem('yadda-model');
+  localStorage.removeItem('yadda-flags');
 });
 
 elmApp.ports.alertify.subscribe(function(config) {

@@ -1,6 +1,7 @@
 module Navbar.View exposing (..)
 
 import Base.Model exposing (BaseModel)
+import Env.Env exposing (Environment(Development))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -22,13 +23,15 @@ view : BaseModel -> Html NavbarMsg
 view model =
     let
         devText =
-            if model.dev then
-                p [ class "navbar-text" ] [ text <| versionText model ]
-            else
-                Html.text ""
+            case model.env of
+                Development ->
+                    p [ class "navbar-text" ] [ text <| versionText model ]
+
+                _ ->
+                    Html.text ""
 
         logoutButton =
-            if model.authModel.authenticated then
+            if model.authentication.authenticated then
                 button [ class "btn btn-default", onClick Logout ] [ text "Logout" ]
             else
                 Html.text ""

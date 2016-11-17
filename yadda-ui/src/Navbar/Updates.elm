@@ -11,9 +11,9 @@ update message model =
         Logout ->
             let
                 ( nam, _ ) =
-                    logout model.authModel
+                    logout model.authentication
 
                 newModel =
-                    { model | authModel = nam }
+                    { model | authentication = nam }
             in
                 ( newModel, Cmd.none )

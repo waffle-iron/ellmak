@@ -69,8 +69,8 @@ decodeTokenCmd token =
     Task.attempt (ForSelf << DecodeResult) (fromDecodeResult <| decodeToken tokenPayloadDecoder token)
 
 
-authenticatedCmd : Authentication -> Cmd Msg
-authenticatedCmd model =
+authenticated : Authentication -> Cmd Msg
+authenticated model =
     Task.perform (ForSelf << Authenticated << checkExpiry model) Time.now
 
 
@@ -119,7 +119,7 @@ update message auth baseUrl =
                         newModel =
                             { auth | payload = payload }
                     in
-                        ( newModel, authenticatedCmd newModel )
+                        ( newModel, authenticated newModel )
 
                 Err error ->
                     authError auth (TokenError error)
@@ -128,7 +128,7 @@ update message auth baseUrl =
             ( auth, authUser auth baseUrl authUrl )
 
         Logout ->
-            ( Auth.Model.new, Cmd.none )
+            ( Auth.Model.defaultAuthentication, Cmd.none )
 
         SetPassword password ->
             ( { auth | password = password }, Cmd.none )

@@ -14,17 +14,17 @@ import RightPanel.View exposing (..)
 authenticatedContent : BaseModel -> Html BaseMsg
 authenticatedContent model =
     div [ class "row" ]
-        [ div [ class "col-lg-8" ] [ LeftPanel.View.view model ]
+        [ div [ class "col-lg-8" ] [ Html.map LeftPanelMsg (LeftPanel.View.view model.leftPanel) ]
         , div [ class "col-lg-4" ] [ RightPanel.View.view model ]
         ]
 
 
 mainContent : BaseModel -> Html BaseMsg
 mainContent model =
-    if model.authModel.authenticated then
+    if model.authentication.authenticated then
         authenticatedContent model
     else
-        Html.map translator (Auth.View.view model.authModel)
+        Html.map translator (Auth.View.view model.authentication)
 
 
 view : BaseModel -> Html BaseMsg

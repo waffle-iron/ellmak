@@ -2,43 +2,28 @@ module Base.Updates exposing (..)
 
 import Auth.Messages exposing (..)
 import Auth.Model exposing (AuthError(..))
-import Auth.Updates
+import Auth.Updates exposing (authenticated)
 import Base.Messages exposing (..)
 import Base.Model exposing (..)
+import Conversions.Model exposing (toFlags)
 import Http exposing (..)
 import Json.Decode as Decode exposing (..)
 import Jwt exposing (JwtError(TokenProcessingError, TokenDecodeError))
+import LeftPanel.Updates exposing (update)
 import Navigation exposing (..)
 import Navbar.Updates exposing (..)
 import Ports.Ports exposing (alertify, storeFlags)
 import Routing.Router exposing (..)
 
 
-versionDecoder : Decoder String
-versionDecoder =
-    field "version" Decode.string
+checkAuthExpiry : BaseModel -> Cmd BaseMsg
+checkAuthExpiry model =
+    Cmd.map translator (authenticated model.authentication)
 
 
-fetchVersion : BaseModel -> Cmd BaseMsg
-fetchVersion model =
-    let
-        request =
-            Http.request
-                { method = "GET"
-                , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authModel.token)) ]
-                , url = model.baseUrl
-                , body = Http.emptyBody
-                , expect = Http.expectJson versionDecoder
-                , timeout = Nothing
-                , withCredentials = True
-                }
-    in
-        Http.send FetchVersionRequest request
-
-
-storeModelCmd : BaseModel -> Cmd BaseMsg
-storeModelCmd model =
-    modelToFlags model |> storeFlags
+storeFlags : BaseModel -> Cmd BaseMsg
+storeFlags model =
+    toFlags model |> Ports.Ports.storeFlags
 
 
 showAlert : BaseModel -> String -> String -> ( BaseModel, Cmd BaseMsg )
@@ -64,7 +49,7 @@ clone model =
         request =
             Http.request
                 { method = "GET"
-                , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authModel.token)) ]
+                , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authentication.token)) ]
                 , url = (model.baseUrl ++ "/clone/?repo=blah")
                 , body = Http.emptyBody
                 , expect = Http.expectJson cloneDecoder
@@ -82,7 +67,12 @@ alertCmd config =
 
 translator : Auth.Messages.Translator BaseMsg
 translator =
-    Auth.Messages.translator { onInternalMessage = AuthMsg, onAuthError = AuthAuthError }
+    Auth.Messages.translator { onInternalMessage = AuthMsg, onAuthError = AuthError }
+
+
+checkExpiry : BaseModel -> Cmd BaseMsg
+checkExpiry model =
+    Cmd.map translator (authenticated model.authentication)
 
 
 update : BaseMsg -> BaseModel -> ( BaseModel, Cmd BaseMsg )
@@ -106,32 +96,27 @@ update msg model =
                 Err err ->
                     showAlert model "error" (toString err)
 
-        FetchVersionRequest result ->
-            case result of
-                Ok apiVersion ->
-                    let
-                        newModel =
-                            { model | apiVersion = apiVersion }
-                    in
-                        ( newModel, storeModelCmd newModel )
+        LeftPanelMsg subMsg ->
+            let
+                ( updatedModel, leftPanelCmd ) =
+                    LeftPanel.Updates.update subMsg model.leftPanel
 
-                Err err ->
-                    showAlert model "error" (toString err)
-
-        FetchVersion ->
-            ( model, fetchVersion model )
+                newModel =
+                    { model | leftPanel = updatedModel }
+            in
+                ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map LeftPanelMsg leftPanelCmd ] )
 
         AuthMsg subMsg ->
             let
                 ( updatedAuthModel, authCmd ) =
-                    Auth.Updates.update subMsg model.authModel model.baseUrl
+                    Auth.Updates.update subMsg model.authentication model.baseUrl
 
                 newModel =
-                    { model | authModel = updatedAuthModel }
+                    { model | authentication = updatedAuthModel }
             in
-                ( newModel, Cmd.batch [ storeModelCmd newModel, Cmd.map translator authCmd ] )
+                ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map translator authCmd ] )
 
-        AuthAuthError error ->
+        AuthError error ->
             case error of
                 HttpError httpError ->
                     case httpError of
@@ -185,10 +170,7 @@ update msg model =
                 ( unm, ncmd ) =
                     Navbar.Updates.update subMsg model
             in
-                ( unm, Cmd.batch [ storeModelCmd unm, Cmd.map NavMsg ncmd ] )
-
-        ToAdmin ->
-            ( model, Navigation.newUrl ("#admin") )
+                ( unm, Cmd.batch [ storeFlags unm, Cmd.map NavMsg ncmd ] )
 
         ToHome ->
             ( model, Navigation.newUrl ("#") )
@@ -204,7 +186,13 @@ update msg model =
                 currentRoute =
                     routeFromMaybe <| hashParser location
 
+                { leftPanel } =
+                    model
+
+                newLeftPanel =
+                    { leftPanel | route = currentRoute }
+
                 newModel =
-                    { model | route = currentRoute }
+                    { model | leftPanel = newLeftPanel }
             in
-                ( newModel, Cmd.none )
+                ( newModel, storeFlags newModel )
