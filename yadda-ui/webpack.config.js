@@ -63,6 +63,8 @@ if (__DEV__) {
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
       __DEV__: __DEV__,
+      __INT__: __INT__,
+      __STG__: __STG__,
       __PROD__: __PROD__,
       BASE_URL: JSON.stringify("http://localhost:3000/api/v1"),
       UI_VERSION: JSON.stringify("v" + require("./package.json").version),
@@ -76,6 +78,8 @@ if (__INT__ || __STG__ || __PROD__) {
   config.plugins.push(
     new webpack.DefinePlugin({
       __DEV__: __DEV__,
+      __INT__: __INT__,
+      __STG__: __STG__,
       __PROD__: __PROD__,
       BASE_URL: JSON.stringify("api/v1"),
       UI_VERSION: JSON.stringify("v" + require("./package.json").version),
