@@ -46,7 +46,7 @@ const config = {
   },
 
   sassLoader: {
-    includePaths: [path.resolve(__dirname, "./src/styles")]
+    includePaths: [path.resolve(__dirname, "./styles")]
   }
 };
 

@@ -1,6 +1,6 @@
 'use strict';
 
-require('./styles/core.scss');
+require('../styles/core.scss');
 require('./index.html');
 var alertify = require('alertify.js');
 
