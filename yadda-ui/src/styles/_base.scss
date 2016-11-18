@@ -19,27 +19,6 @@ For example:
   margin-bottom: 5px;
 }
 
-.logout-button {
-  padding-top: 7px;
-}
-
-.notification {
-  position: fixed;
-  top: -20em;
-  left: 50%;
-  margin-left: -10%;
-  border-radius: 20px 7.5px;
-  width: 20%;
-  padding: 1em;
-  overflow: hidden !important;
-  transition: top 0.8s cubic-bezier(.87,-.41,.19,1.44);
-  box-shadow: 5px 5px 5px rgba(0,0,0,.2);
-}
-
-.notification.show {
-  top: 1em !important;
-}
-
 #right-accordion {
   padding-top: 5px;
 }

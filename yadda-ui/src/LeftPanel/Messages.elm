@@ -5,3 +5,4 @@ type LeftPanelMsg
     = ToggleUrlHelp
     | ToggleBranchHelp
     | ToHome
+    | Eat

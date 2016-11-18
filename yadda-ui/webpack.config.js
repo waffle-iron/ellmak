@@ -28,7 +28,8 @@ const config = {
       {test: /\.html$/, exclude: /node_modules/, loader: 'file?name=[name].[ext]' },
       {test: /\.(png|jpg|svg|woff|woff2)?(\?v=\d+.\d+.\d+)?$/, loader: 'url-loader?limit=8192'},
       {test: /\.(eot|ttf)$/, loader: 'file-loader'},
-      {test: /\.elm$/, exclude: [/elm-stuff/, /node_modules/], loader: 'elm-webpack'}
+      {test: /\.elm$/, exclude: [/elm-stuff/, /node_modules/], loader: 'elm-webpack'},
+      {test: /bootstrap-sass[\/\\]assets[\/\\]javascripts[\/\\]/, loader: 'imports?jQuery=jquery' },
     ],
 
     noParse: /\.elm$/

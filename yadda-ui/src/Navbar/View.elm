@@ -32,23 +32,33 @@ view model =
 
         logoutButton =
             if model.authentication.authenticated then
-                button [ class "btn btn-default", onClick Logout ] [ text "Logout" ]
+                button [ class "btn btn-default navbar-btn", onClick Logout ] [ text "Logout" ]
             else
                 Html.text ""
     in
         nav [ class "navbar navbar-default" ]
             [ div [ class "container-fluid" ]
                 [ div [ class "navbar-header" ]
-                    [ div [ class "navbar-brand" ]
-                        [ a [ href "/" ]
-                            [ img [ class "brand", alt "Yadda", src "lambda_orange.png" ] []
-                            ]
+                    [ button
+                        [ type_ "button"
+                        , class "navbar-toggle collapsed"
+                        , attribute "data-toggle" "collapse"
+                        , attribute "data-target" "#navbar-collapse-1"
+                        , attribute "aria-expanded" "false"
+                        ]
+                        [ span [ class "sr-only" ] [ text "Toggle Navigation" ]
+                        , span [ class "icon-bar" ] []
+                        , span [ class "icon-bar" ] []
+                        , span [ class "icon-bar" ] []
+                        ]
+                    , a [ class "navbar-brand", href "#" ]
+                        [ img [ class "brand", alt "Yadda", src "lambda_orange.png" ] []
                         ]
                     ]
                 , div [ class "collapse navbar-collapse", id "navbar-collapse-1" ]
-                    [ ul [ class "nav navbar-nav navbar-right" ]
-                        [ li [] [ devText ]
-                        , li [ class "logout-button" ] [ logoutButton ]
+                    [ div [ class "nav navbar-nav navbar-right" ]
+                        [ devText
+                        , logoutButton
                         ]
                     ]
                 ]
