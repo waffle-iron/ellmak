@@ -16,6 +16,9 @@ toRoute str =
         "AddRepo" ->
             AddRepo
 
+        "RemoveRepo" ->
+            RemoveRepo
+
         _ ->
             NotFound
 

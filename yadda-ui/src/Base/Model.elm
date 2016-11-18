@@ -3,6 +3,7 @@ module Base.Model exposing (..)
 import Auth.Model exposing (Authentication, defaultAuthentication)
 import Env.Env exposing (Environment(Development))
 import LeftPanel.Model exposing (LeftPanel, defaultLeftPanel)
+import RightPanel.Model exposing (RightPanel, defaultRightPanel)
 
 
 type alias AlertifyConfig =
@@ -33,6 +34,7 @@ type alias BaseModel =
     , uiVersion : String
     , authentication : Authentication
     , leftPanel : LeftPanel
+    , rightPanel : RightPanel
     }
 
 
@@ -44,4 +46,5 @@ defaultBase =
     , uiVersion = ""
     , authentication = defaultAuthentication
     , leftPanel = defaultLeftPanel
+    , rightPanel = defaultRightPanel
     }

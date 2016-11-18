@@ -7,6 +7,7 @@ import Http
 import LeftPanel.Messages exposing (LeftPanelMsg)
 import Navbar.Messages exposing (..)
 import Navigation exposing (Location)
+import RightPanel.Messages exposing (RightPanelMsg)
 
 
 type BaseMsg
@@ -14,6 +15,7 @@ type BaseMsg
       AuthMsg InternalMsg
     | LeftPanelMsg LeftPanel.Messages.LeftPanelMsg
     | NavMsg Navbar.Messages.NavbarMsg
+    | RightPanelMsg RightPanel.Messages.RightPanelMsg
       -- Child to Parent Messages
     | AuthError Auth.Model.AuthError
       -- Navigation Messages
@@ -24,5 +26,6 @@ type BaseMsg
     | Alert AlertifyConfig
     | Clone
     | Repo String
+    | Eat
       -- API Messages
     | CloneRequest (Result Http.Error String)

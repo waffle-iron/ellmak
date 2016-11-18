@@ -9,7 +9,7 @@ import Flags.Flags exposing (Flags)
 toFlags : BaseModel -> Flags
 toFlags model =
     let
-        { env, baseUrl, apiVersion, uiVersion, authentication, leftPanel } =
+        { env, baseUrl, apiVersion, uiVersion, authentication, leftPanel, rightPanel } =
             model
 
         { route } =

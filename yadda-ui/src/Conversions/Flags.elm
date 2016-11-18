@@ -5,6 +5,7 @@ import Base.Model exposing (BaseModel, defaultBase)
 import Conversions.String exposing (toEnvironment, toRoute)
 import Flags.Flags exposing (Flags)
 import LeftPanel.Model exposing (defaultLeftPanel)
+import RightPanel.Model exposing (defaultRightPanel)
 import Routing.Router exposing (Route)
 
 
@@ -29,6 +30,9 @@ toBaseModel maybeFlags route =
                 authentication =
                     defaultAuthentication
 
+                rightPanel =
+                    defaultRightPanel
+
                 leftPanel =
                     defaultLeftPanel
 
@@ -42,6 +46,7 @@ toBaseModel maybeFlags route =
                     flags.uiVersion
                     (toAuthentication flags)
                     newLeftPanel
+                    rightPanel
 
 
 toAuthentication : Flags -> Authentication

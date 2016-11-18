@@ -21,7 +21,12 @@ view model =
     case model.route of
         Home ->
             panelContent "Repositories"
-                [ p [] [ strong [] [ text "Repos will be here!" ] ]
+                [ p [] [ strong [] [ text "Not yet implemented!" ] ]
+                ]
+
+        RemoveRepo ->
+            panelContent "Remove Repository"
+                [ p [] [ strong [] [ text "Not yet implemented!" ] ]
                 ]
 
         AddRepo ->

@@ -1,10 +1,11 @@
 module RightPanel.View exposing (..)
 
 import Base.Model exposing (..)
-import Base.Messages exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import RightPanel.Messages exposing (RightPanelMsg(..))
+import RightPanel.Model exposing (RightPanel)
 
 
 panelContent : String -> List (Html a) -> Html a
@@ -15,7 +16,7 @@ panelContent heading body =
         ]
 
 
-view : BaseModel -> Html BaseMsg
+view : RightPanel -> Html RightPanelMsg
 view model =
     let
         baseConfig =
@@ -26,20 +27,20 @@ view model =
     in
         panelContent "Repository Management"
             [ div [ class "row" ]
-                [ div [ class "col-lg-8 col-md-12 col-sm-6 col-xs-12" ]
-                    [ Html.form []
+                [ div [ class "col-lg-12 col-md-12 col-sm-12 col-xs-12" ]
+                    [ Html.form [ onSubmit Eat ]
                         [ div [ class "form-group" ]
-                            [ input [ type_ "text", class "form-control", placeholder "Search Repositories" ] []
-                            ]
-                        ]
-                    ]
-                , div [ class "col-lg-4 col-md-12 col-sm-6 col-xs-12" ]
-                    [ div [ class "button-group pull-right" ]
-                        [ button [ class "btn btn-default", onClick ToAdd ]
-                            [ span [ class "glyphicon glyphicon-plus-sign" ] []
-                            ]
-                        , button [ class "btn btn-default", onClick ToAdd ]
-                            [ span [ class "glyphicon glyphicon-minus-sign" ] []
+                            [ div [ class "input-group" ]
+                                [ input [ type_ "text", class "form-control", placeholder "Search Repositories" ] []
+                                , div [ class "input-group-btn" ]
+                                    [ button [ class "btn btn-default", onClick ToAdd ]
+                                        [ span [ class "glyphicon glyphicon-plus-sign" ] []
+                                        ]
+                                    , button [ class "btn btn-default", onClick ToRemove ]
+                                        [ span [ class "glyphicon glyphicon-minus-sign" ] []
+                                        ]
+                                    ]
+                                ]
                             ]
                         ]
                     ]

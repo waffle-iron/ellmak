@@ -13,6 +13,7 @@ import LeftPanel.Updates exposing (update)
 import Navigation exposing (..)
 import Navbar.Updates exposing (..)
 import Ports.Ports exposing (alertify, storeFlags)
+import RightPanel.Updates exposing (update)
 import Routing.Router exposing (..)
 
 
@@ -106,6 +107,16 @@ update msg model =
             in
                 ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map LeftPanelMsg leftPanelCmd ] )
 
+        RightPanelMsg subMsg ->
+            let
+                ( updatedModel, rightPanelCmd ) =
+                    RightPanel.Updates.update subMsg model.rightPanel
+
+                newModel =
+                    { model | rightPanel = updatedModel }
+            in
+                ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map RightPanelMsg rightPanelCmd ] )
+
         AuthMsg subMsg ->
             let
                 ( updatedAuthModel, authCmd ) =
@@ -196,3 +207,6 @@ update msg model =
                     { model | leftPanel = newLeftPanel }
             in
                 ( newModel, storeFlags newModel )
+
+        Eat ->
+            ( model, Cmd.none )

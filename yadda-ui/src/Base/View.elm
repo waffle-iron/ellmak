@@ -14,8 +14,12 @@ import RightPanel.View exposing (..)
 authenticatedContent : BaseModel -> Html BaseMsg
 authenticatedContent model =
     div [ class "row" ]
-        [ div [ class "col-lg-8 col-md-8 col-xs-12" ] [ Html.map LeftPanelMsg (LeftPanel.View.view model.leftPanel) ]
-        , div [ class "col-lg-4 col-md-4 col-xs-12" ] [ RightPanel.View.view model ]
+        [ div [ class "col-lg-8 col-md-12 col-sm-12 col-xs-12" ]
+            [ Html.map LeftPanelMsg (LeftPanel.View.view model.leftPanel)
+            ]
+        , div [ class "col-lg-4 col-md-12 col-sm-12 col-xs-12" ]
+            [ Html.map RightPanelMsg (RightPanel.View.view model.rightPanel)
+            ]
         ]
 
 
@@ -31,12 +35,12 @@ view : BaseModel -> Html BaseMsg
 view model =
     div [ class "container-fluid" ]
         [ div [ class "row" ]
-            [ div [ class "col-lg-8 col-lg-offset-2 col-md-8 col-md-offset-2 col-xs-12" ]
+            [ div [ class "col-lg-12 col-md-12 col-sm-12 col-xs-12" ]
                 [ Html.map NavMsg (Navbar.View.view model)
                 ]
             ]
         , div [ class "row" ]
-            [ div [ class "col-lg-8 col-lg-offset-2 col-md-8 col-md-offset-2 col-xs-12" ]
+            [ div [ class "col-lg-12 col-md-12 col-sm-12 col-xs-12" ]
                 [ mainContent model
                 ]
             ]
