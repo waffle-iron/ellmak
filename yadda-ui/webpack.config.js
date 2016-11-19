@@ -13,6 +13,7 @@ debug('Webpack Configuration')
 const config = {
   output: {
     path: "./dist",
+    publicPath: "/",
     filename: 'index.js'
   },
 
@@ -28,7 +29,7 @@ const config = {
       {test: /\.html$/, exclude: /node_modules/, loader: 'file?name=[name].[ext]' },
       {test: /\.(png|jpg|svg|woff|woff2)?(\?v=\d+.\d+.\d+)?$/, loader: 'url-loader?limit=8192'},
       {test: /\.(eot|ttf)$/, loader: 'file-loader'},
-      {test: /\.elm$/, exclude: [/elm-stuff/, /node_modules/], loader: 'elm-webpack'},
+      {test: /\.elm$/, exclude: [/elm-stuff/, /node_modules/], loader: 'elm-hot!elm-webpack'},
       {test: /bootstrap-sass[\/\\]assets[\/\\]javascripts[\/\\]/, loader: 'imports?jQuery=jquery' },
     ],
 
@@ -36,13 +37,7 @@ const config = {
   },
 
   devServer: {
-    historyApiFallback: true,
-    hot: true,
-    inline: true,
-    progress: true,
-
-    // Display only errors to reduce the amount of output.
-    stats: 'errors-only',
+    publicPath: '/'
   },
 
   sassLoader: {
@@ -53,9 +48,8 @@ const config = {
 config.plugins = [new CopyWebpackPlugin([{from: 'static'}])]
 
 if (__DEV__) {
-  debug('Enable plugins for live development (HotModuleReplacementPlugin, Define, NoErrors).')
+  debug('Enable plugins for live development (CopyWebpack, Define, NoErrors).')
   config.plugins.push(
-    new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
       __DEV__: __DEV__,
       __INT__: __INT__,
@@ -68,10 +62,10 @@ if (__DEV__) {
     new webpack.NoErrorsPlugin()
   )
 
-  config.entry = [ 'bootstrap-loader', './src/index.js', 'webpack/hot/dev-server' ]
+  config.entry = [ 'bootstrap-loader', './src/index.js' ]
 }
 if (__INT__ || __STG__ || __PROD__) {
-  debug('Enable plugins for production (Define, OccurenceOrder, Dedupe, & UglifyJS).')
+  debug('Enable plugins for production (CopyWebpack, Define, OccurenceOrder, Dedupe, & UglifyJS).')
   config.plugins.push(
     new webpack.DefinePlugin({
       __DEV__: __DEV__,

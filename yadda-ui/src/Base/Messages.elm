@@ -27,5 +27,6 @@ type BaseMsg
     | Clone
     | Repo String
     | Eat
+    | NoOp
       -- API Messages
     | CloneRequest (Result Http.Error String)

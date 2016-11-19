@@ -14,5 +14,5 @@ update msg model =
         ToRemove ->
             ( model, newUrl ("#removerepo") )
 
-        Eat ->
+        NoOp ->
             ( model, Cmd.none )

@@ -28,7 +28,7 @@ view model =
         panelContent "Repository Management"
             [ div [ class "row" ]
                 [ div [ class "col-lg-12 col-md-12 col-sm-12 col-xs-12" ]
-                    [ Html.form [ onSubmit Eat ]
+                    [ Html.form [ onSubmit NoOp ]
                         [ div [ class "form-group" ]
                             [ div [ class "input-group" ]
                                 [ input [ type_ "text", class "form-control", placeholder "Search Repositories" ] []

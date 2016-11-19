@@ -79,6 +79,9 @@ checkExpiry model =
 update : BaseMsg -> BaseModel -> ( BaseModel, Cmd BaseMsg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         Alert config ->
             ( model, alertCmd config )
 

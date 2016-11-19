@@ -4,15 +4,23 @@ import Routing.Router exposing (Route(Home))
 
 
 type alias LeftPanel =
-    { urlHelp : Bool
-    , branchHelp : Bool
+    { baseUrl : String
+    , token : String
     , route : Route
+    , repoUrl : String
+    , branches : List String
+    , frequency : String
+    , shortName : String
     }
 
 
 defaultLeftPanel : LeftPanel
 defaultLeftPanel =
-    { urlHelp = False
-    , branchHelp = False
+    { baseUrl = ""
+    , token = ""
     , route = Home
+    , repoUrl = ""
+    , branches = []
+    , frequency = ""
+    , shortName = ""
     }

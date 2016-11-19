@@ -1,8 +1,18 @@
 module LeftPanel.Messages exposing (..)
 
+import Http exposing (Error)
+
 
 type LeftPanelMsg
-    = ToggleUrlHelp
-    | ToggleBranchHelp
+    = -- UI Messages
+      Eat
+      -- Navigation Messages
     | ToHome
-    | Eat
+      -- Input Messages
+    | ClickAddRepo
+    | SetRepoUrl String
+    | SetBranches String
+    | SetFrequency String
+    | SetShortName String
+      -- API Messages
+    | PostRepoResult (Result Http.Error String)

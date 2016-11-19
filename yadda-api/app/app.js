@@ -7,6 +7,7 @@ import bodyParser from 'body-parser'
 import routes from './routes/index'
 import login from './routes/login'
 import clone from './routes/clone'
+import repo from './routes/repo'
 import { banner, error } from './utils/logger'
 
 const router = express.Router()
@@ -42,6 +43,7 @@ app.use('/api/v1', router)
 router.use('/', routes)
 router.use('/login', login)
 router.use('/clone', clone)
+router.use('/repo', repo)
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
