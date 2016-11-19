@@ -4,7 +4,8 @@ import Auth.Model exposing (AuthError)
 import Auth.Messages exposing (InternalMsg)
 import Base.Model exposing (AlertifyConfig)
 import Http
-import LeftPanel.Messages exposing (LeftPanelMsg)
+import LeftPanel.Messages exposing (InternalMsg)
+import LeftPanel.Model exposing (LeftPanel)
 import Navbar.Messages exposing (..)
 import Navigation exposing (Location)
 import RightPanel.Messages exposing (RightPanelMsg)
@@ -12,12 +13,13 @@ import RightPanel.Messages exposing (RightPanelMsg)
 
 type BaseMsg
     = -- Parent to Child Messages
-      AuthMsg InternalMsg
-    | LeftPanelMsg LeftPanel.Messages.LeftPanelMsg
+      AuthMsg Auth.Messages.InternalMsg
+    | LeftPanelMsg LeftPanel.Messages.InternalMsg
     | NavMsg Navbar.Messages.NavbarMsg
     | RightPanelMsg RightPanel.Messages.RightPanelMsg
       -- Child to Parent Messages
     | AuthError Auth.Model.AuthError
+    | PostRepo LeftPanel.Model.LeftPanel
       -- Navigation Messages
     | LocationChange Location
     | ToHome
@@ -30,3 +32,4 @@ type BaseMsg
     | NoOp
       -- API Messages
     | CloneRequest (Result Http.Error String)
+    | PostRepoResult (Result Http.Error String)

@@ -4,9 +4,7 @@ import Routing.Router exposing (Route(Home))
 
 
 type alias LeftPanel =
-    { baseUrl : String
-    , token : String
-    , route : Route
+    { route : Route
     , repoUrl : String
     , branches : List String
     , frequency : String
@@ -16,9 +14,7 @@ type alias LeftPanel =
 
 defaultLeftPanel : LeftPanel
 defaultLeftPanel =
-    { baseUrl = ""
-    , token = ""
-    , route = Home
+    { route = Home
     , repoUrl = ""
     , branches = []
     , frequency = ""

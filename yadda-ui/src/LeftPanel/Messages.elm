@@ -1,9 +1,9 @@
 module LeftPanel.Messages exposing (..)
 
-import Http exposing (Error)
+import LeftPanel.Model exposing (LeftPanel)
 
 
-type LeftPanelMsg
+type InternalMsg
     = -- UI Messages
       Eat
       -- Navigation Messages
@@ -14,5 +14,32 @@ type LeftPanelMsg
     | SetBranches String
     | SetFrequency String
     | SetShortName String
-      -- API Messages
-    | PostRepoResult (Result Http.Error String)
+
+
+type ExternalMsg
+    = PostRepo LeftPanel
+
+
+type Msg
+    = ForSelf InternalMsg
+    | ForParent ExternalMsg
+
+
+type alias TranslationDictionary msg =
+    { onInternalMessage : InternalMsg -> msg
+    , onPostRepo : LeftPanel -> msg
+    }
+
+
+type alias Translator parentMsg =
+    Msg -> parentMsg
+
+
+translator : TranslationDictionary parentMsg -> Translator parentMsg
+translator { onInternalMessage, onPostRepo } msg =
+    case msg of
+        ForSelf internal ->
+            onInternalMessage internal
+
+        ForParent (PostRepo model) ->
+            onPostRepo model

@@ -8,7 +8,10 @@ import Base.Model exposing (..)
 import Conversions.Model exposing (toFlags)
 import Http exposing (..)
 import Json.Decode as Decode exposing (..)
+import Json.Encode as Encode exposing (..)
 import Jwt exposing (JwtError(TokenProcessingError, TokenDecodeError))
+import LeftPanel.Messages exposing (Translator, translator)
+import LeftPanel.Model exposing (LeftPanel)
 import LeftPanel.Updates exposing (update)
 import Navigation exposing (..)
 import Navbar.Updates exposing (..)
@@ -19,7 +22,7 @@ import Routing.Router exposing (..)
 
 checkAuthExpiry : BaseModel -> Cmd BaseMsg
 checkAuthExpiry model =
-    Cmd.map translator (authenticated model.authentication)
+    Cmd.map authTranslator (authenticated model.authentication)
 
 
 storeFlags : BaseModel -> Cmd BaseMsg
@@ -66,14 +69,55 @@ alertCmd config =
     alertify config
 
 
-translator : Auth.Messages.Translator BaseMsg
-translator =
+authTranslator : Auth.Messages.Translator BaseMsg
+authTranslator =
     Auth.Messages.translator { onInternalMessage = AuthMsg, onAuthError = AuthError }
+
+
+leftPanelTranslator : LeftPanel.Messages.Translator BaseMsg
+leftPanelTranslator =
+    LeftPanel.Messages.translator { onInternalMessage = LeftPanelMsg, onPostRepo = Base.Messages.PostRepo }
 
 
 checkExpiry : BaseModel -> Cmd BaseMsg
 checkExpiry model =
-    Cmd.map translator (authenticated model.authentication)
+    Cmd.map authTranslator (authenticated model.authentication)
+
+
+repoSuffix : String
+repoSuffix =
+    "/repo"
+
+
+repoEncoder : LeftPanel -> Encode.Value
+repoEncoder model =
+    Encode.object
+        [ ( "url", Encode.string model.repoUrl )
+        , ( "branches", Encode.list (List.map Encode.string model.branches) )
+        , ( "frequency", Encode.string model.frequency )
+        ]
+
+
+repoDecoder : Decoder String
+repoDecoder =
+    field "repo" Decode.string
+
+
+addRepo : BaseModel -> LeftPanel -> Cmd BaseMsg
+addRepo model leftPanelModel =
+    let
+        request =
+            Http.request
+                { method = "POST"
+                , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authentication.token)) ]
+                , url = (model.baseUrl ++ repoSuffix)
+                , body = Http.jsonBody <| repoEncoder leftPanelModel
+                , expect = Http.expectJson repoDecoder
+                , timeout = Nothing
+                , withCredentials = True
+                }
+    in
+        Http.send PostRepoResult request
 
 
 update : BaseMsg -> BaseModel -> ( BaseModel, Cmd BaseMsg )
@@ -108,7 +152,18 @@ update msg model =
                 newModel =
                     { model | leftPanel = updatedModel }
             in
-                ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map LeftPanelMsg leftPanelCmd ] )
+                ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map leftPanelTranslator leftPanelCmd ] )
+
+        PostRepo leftPanelModel ->
+            ( model, addRepo model leftPanelModel )
+
+        PostRepoResult result ->
+            case result of
+                Ok success ->
+                    ( model |> (Debug.log <| "PostRepo: " ++ (toString success)), Cmd.none )
+
+                Err err ->
+                    showAlert model "error" (toString err)
 
         RightPanelMsg subMsg ->
             let
@@ -128,7 +183,7 @@ update msg model =
                 newModel =
                     { model | authentication = updatedAuthModel }
             in
-                ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map translator authCmd ] )
+                ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map authTranslator authCmd ] )
 
         AuthError error ->
             case error of

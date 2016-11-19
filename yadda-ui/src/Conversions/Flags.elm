@@ -37,7 +37,7 @@ toBaseModel maybeFlags route =
                     defaultLeftPanel
 
                 newLeftPanel =
-                    { leftPanel | baseUrl = flags.baseUrl, route = route }
+                    { leftPanel | route = route }
             in
                 BaseModel
                     (toEnvironment flags.env)
