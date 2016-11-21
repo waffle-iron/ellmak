@@ -8,6 +8,7 @@ import LeftPanel.Messages exposing (InternalMsg)
 import LeftPanel.Model exposing (LeftPanel)
 import Navbar.Messages exposing (..)
 import Navigation exposing (Location)
+import Repo.Model exposing (Repository)
 import RightPanel.Messages exposing (RightPanelMsg)
 
 
@@ -19,6 +20,7 @@ type BaseMsg
     | RightPanelMsg RightPanel.Messages.RightPanelMsg
       -- Child to Parent Messages
     | AuthError Auth.Model.AuthError
+    | AuthSuccess
     | PostRepo LeftPanel.Model.LeftPanel
       -- Navigation Messages
     | LocationChange Location
@@ -32,4 +34,5 @@ type BaseMsg
     | NoOp
       -- API Messages
     | CloneRequest (Result Http.Error String)
-    | PostRepoResult (Result Http.Error String)
+    | PostRepoResult (Result Http.Error Repository)
+    | GetRepoResult (Result Http.Error (List Repository))

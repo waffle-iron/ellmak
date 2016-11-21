@@ -62,6 +62,23 @@ addRepoFormGroupText ti idStr labelStr placeholderStr msg =
         ]
 
 
+originFormGroup : Html Msg
+originFormGroup =
+    div [ class "form-group" ]
+        [ label [ for "origin-name", class "col-lg-2 col-md-3 col-sm-2 col-xs-3 control-label" ] [ text "Origin" ]
+        , div [ class "col-lg-8 col-md-7 col-sm-8 col-xs-6" ]
+            [ div [ class "row" ]
+                [ div [ class "col-lg-6 col-md-6 col-sm-6 col-xs-6" ]
+                    [ div [ class "form-control", id "origin-name" ] [ text "Origin" ]
+                    ]
+                , div [ class "col-lg-6 col-md-6 col-sm-6 col-xs-6" ]
+                    [ input [ type_ "text", class "form-control", id "origin-url", placeholder "Origin URL" ] []
+                    ]
+                ]
+            ]
+        ]
+
+
 view : LeftPanel -> Html Msg
 view model =
     case model.route of
@@ -78,8 +95,11 @@ view model =
         AddRepo ->
             panelContent "Add Repository Monitor"
                 [ Html.form [ class "form-horizontal", onSubmit (ForSelf Eat) ]
-                    [ addRepoFormGroupText 1 "repo-url" "Repository URL" "git@github.com:CraZySacX/yadda.git" (ForSelf << SetRepoUrl)
+                    [ addRepoFormGroupText 1 "repo-url" "Origin URL" "jozias@jasonozias.com:repos/yadda.git" (ForSelf << SetRepoUrl)
                     , helpTextWell "repo-url" "Url Help Text"
+                    , originFormGroup
+                    , addRepoFormGroupTextArea 2 "repo-remotes" "Additional Remotes" "git@github.com:CraZySacX/yadda.git" (ForSelf << SetRemotes)
+                    , helpTextWell "repo-remotes" "Additional Remotes Help Text"
                     , addRepoFormGroupTextArea 2 "repo-refs" "Branches To Monitor" "origin/master" (ForSelf << SetBranches)
                     , helpTextWell "repo-refs" "Branches To Monitor Help Text"
                     , addRepoFormGroupText 3 "frequency" "Frequency" "15m" (ForSelf << SetFrequency)

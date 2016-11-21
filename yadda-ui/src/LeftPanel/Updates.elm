@@ -27,6 +27,13 @@ update msg model =
         SetRepoUrl repoUrl ->
             ( { model | repoUrl = repoUrl }, Cmd.none )
 
+        SetRemotes remotesStr ->
+            let
+                remotes =
+                    split "\n" remotesStr
+            in
+                ( { model | remotes = remotes }, Cmd.none )
+
         SetBranches branchStr ->
             let
                 branches =

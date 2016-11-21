@@ -11,6 +11,7 @@ type InternalMsg
       -- Input Messages
     | ClickAddRepo
     | SetRepoUrl String
+    | SetRemotes String
     | SetBranches String
     | SetFrequency String
     | SetShortName String

@@ -8,8 +8,8 @@ import argon2 from 'argon2'
 const router = express.Router()
 
 router.post('/', (req, res, next) => {
-  var username = req.body.username
-  var password = req.body.password
+  const { username, password } = req.body
+
   if (!username) {
     res.status(400).send('username required')
     return

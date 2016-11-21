@@ -119,7 +119,7 @@ update message auth baseUrl =
                         newModel =
                             { auth | payload = payload }
                     in
-                        ( newModel, authenticated newModel )
+                        ( newModel, Cmd.batch [ authenticated newModel, generateParentMsg AuthenticationSuccess ] )
 
                 Err error ->
                     authError auth (TokenError error)

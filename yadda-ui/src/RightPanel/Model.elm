@@ -1,12 +1,14 @@
 module RightPanel.Model exposing (..)
 
+import Repo.Model exposing (Repository)
+
 
 type alias RightPanel =
-    { repos : String
+    { repos : List Repository
     }
 
 
 defaultRightPanel : RightPanel
 defaultRightPanel =
-    { repos = ""
+    { repos = []
     }

@@ -16,6 +16,7 @@ import LeftPanel.Updates exposing (update)
 import Navigation exposing (..)
 import Navbar.Updates exposing (..)
 import Ports.Ports exposing (alertify, storeFlags)
+import Repo.Model exposing (Repository)
 import RightPanel.Updates exposing (update)
 import Routing.Router exposing (..)
 
@@ -71,7 +72,7 @@ alertCmd config =
 
 authTranslator : Auth.Messages.Translator BaseMsg
 authTranslator =
-    Auth.Messages.translator { onInternalMessage = AuthMsg, onAuthError = AuthError }
+    Auth.Messages.translator { onInternalMessage = AuthMsg, onAuthSuccess = AuthSuccess, onAuthError = AuthError }
 
 
 leftPanelTranslator : LeftPanel.Messages.Translator BaseMsg
@@ -95,12 +96,22 @@ repoEncoder model =
         [ ( "url", Encode.string model.repoUrl )
         , ( "branches", Encode.list (List.map Encode.string model.branches) )
         , ( "frequency", Encode.string model.frequency )
+        , ( "shortName", Encode.string model.shortName )
         ]
 
 
-repoDecoder : Decoder String
+repoDecoder : Decoder Repository
 repoDecoder =
-    field "repo" Decode.string
+    map4 Repository
+        (at [ "url" ] Decode.string)
+        (at [ "branches" ] (Decode.list Decode.string))
+        (at [ "frequency" ] Decode.string)
+        (at [ "shortName" ] Decode.string)
+
+
+reposDecoder : Decoder (List Repository)
+reposDecoder =
+    Decode.list repoDecoder
 
 
 addRepo : BaseModel -> LeftPanel -> Cmd BaseMsg
@@ -120,6 +131,23 @@ addRepo model leftPanelModel =
         Http.send PostRepoResult request
 
 
+getRepos : BaseModel -> Cmd BaseMsg
+getRepos model =
+    let
+        request =
+            Http.request
+                { method = "GET"
+                , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authentication.token)) ]
+                , url = (model.baseUrl ++ repoSuffix)
+                , body = Http.emptyBody
+                , expect = Http.expectJson reposDecoder
+                , timeout = Nothing
+                , withCredentials = True
+                }
+    in
+        Http.send GetRepoResult request
+
+
 update : BaseMsg -> BaseModel -> ( BaseModel, Cmd BaseMsg )
 update msg model =
     case msg of
@@ -135,11 +163,7 @@ update msg model =
         CloneRequest result ->
             case result of
                 Ok success ->
-                    let
-                        res =
-                            Debug.log <| "CloneSuccess: " ++ (toString success)
-                    in
-                        ( model, Cmd.none )
+                    ( model, Cmd.none )
 
                 Err err ->
                     showAlert model "error" (toString err)
@@ -160,7 +184,47 @@ update msg model =
         PostRepoResult result ->
             case result of
                 Ok success ->
-                    ( model, Cmd.none )
+                    let
+                        rightPanel =
+                            model.rightPanel
+
+                        repos =
+                            rightPanel.repos
+
+                        newRepos =
+                            success :: repos
+
+                        newRightPanel =
+                            { rightPanel | repos = newRepos }
+
+                        newModel =
+                            { model | rightPanel = newRightPanel }
+                    in
+                        ( newModel, Cmd.none )
+
+                Err err ->
+                    showAlert model "error" (toString err)
+
+        GetRepoResult result ->
+            case result of
+                Ok success ->
+                    let
+                        rightPanel =
+                            model.rightPanel
+
+                        repos =
+                            rightPanel.repos
+
+                        newRepos =
+                            List.append success repos
+
+                        newRightPanel =
+                            { rightPanel | repos = newRepos }
+
+                        newModel =
+                            { model | rightPanel = newRightPanel }
+                    in
+                        ( newModel, Cmd.none )
 
                 Err err ->
                     showAlert model "error" (toString err)
@@ -184,6 +248,9 @@ update msg model =
                     { model | authentication = updatedAuthModel }
             in
                 ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map authTranslator authCmd ] )
+
+        AuthSuccess ->
+            ( model, getRepos model )
 
         AuthError error ->
             case error of

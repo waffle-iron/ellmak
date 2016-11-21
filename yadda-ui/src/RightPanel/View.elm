@@ -4,6 +4,7 @@ import Base.Model exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Repo.Model exposing (Repository)
 import RightPanel.Messages exposing (RightPanelMsg(..))
 import RightPanel.Model exposing (RightPanel)
 
@@ -14,6 +15,40 @@ panelContent heading body =
         [ div [ class "panel-heading" ] [ text heading ]
         , div [ class "panel-body" ] body
         ]
+
+
+repoPanel : Int -> Repository -> Html RightPanelMsg
+repoPanel idx repo =
+    let
+        idStr =
+            "heading-" ++ (toString idx)
+
+        collStr =
+            "collapse-" ++ (toString idx)
+
+        hrefStr =
+            "#" ++ collStr
+    in
+        div [ class "panel panel-default" ]
+            [ div [ class "panel-heading", attribute "role" "tab", id idStr ]
+                [ h4 [ class "panel-title" ]
+                    [ a
+                        [ attribute "role" "button"
+                        , attribute "data-toggle" "collapse"
+                        , attribute "data-parent" "#right-accordion"
+                        , href hrefStr
+                        , attribute "aria-expanded" "true"
+                        , attribute "aria-controls" collStr
+                        ]
+                        [ text repo.shortName ]
+                    ]
+                ]
+            , div [ class "panel-collapse collapse", id collStr ]
+                [ div [ class "panel-body" ]
+                    [ text "One"
+                    ]
+                ]
+            ]
 
 
 view : RightPanel -> Html RightPanelMsg
@@ -53,47 +88,7 @@ view model =
                         , attribute "role" "tablist"
                         , attribute "aria-multiselectable" "true"
                         ]
-                        [ div [ class "panel panel-default" ]
-                            [ div [ class "panel-heading", attribute "role" "tab", id "headingOne" ]
-                                [ h4 [ class "panel-title" ]
-                                    [ a
-                                        [ attribute "role" "button"
-                                        , attribute "data-toggle" "collapse"
-                                        , attribute "data-parent" "#right-accordion"
-                                        , href "#collapseOne"
-                                        , attribute "aria-expanded" "true"
-                                        , attribute "aria-controls" "collapseOne"
-                                        ]
-                                        [ text "One" ]
-                                    ]
-                                ]
-                            , div [ class "panel-collapse collapse", id "collapseOne" ]
-                                [ div [ class "panel-body" ]
-                                    [ text "One"
-                                    ]
-                                ]
-                            ]
-                        , div [ class "panel panel-default" ]
-                            [ div [ class "panel-heading", attribute "role" "tab", id "headingTwo" ]
-                                [ h4 [ class "panel-title" ]
-                                    [ a
-                                        [ attribute "role" "button"
-                                        , attribute "data-toggle" "collapse"
-                                        , attribute "data-parent" "#right-accordion"
-                                        , href "#collapseTwo"
-                                        , attribute "aria-expanded" "true"
-                                        , attribute "aria-controls" "collapseTwo"
-                                        ]
-                                        [ text "Two" ]
-                                    ]
-                                ]
-                            , div [ class "panel-collapse collapse", id "collapseTwo" ]
-                                [ div [ class "panel-body" ]
-                                    [ text "Two"
-                                    ]
-                                ]
-                            ]
-                        ]
+                        (List.indexedMap repoPanel model.repos)
                     ]
                 ]
             ]

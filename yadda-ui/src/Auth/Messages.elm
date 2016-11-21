@@ -17,6 +17,7 @@ type InternalMsg
 
 type ExternalMsg
     = AuthenticationError AuthError
+    | AuthenticationSuccess
 
 
 type Msg
@@ -27,6 +28,7 @@ type Msg
 type alias TranslationDictionary msg =
     { onInternalMessage : InternalMsg -> msg
     , onAuthError : AuthError -> msg
+    , onAuthSuccess : msg
     }
 
 
@@ -35,10 +37,13 @@ type alias Translator parentMsg =
 
 
 translator : TranslationDictionary parentMsg -> Translator parentMsg
-translator { onInternalMessage, onAuthError } msg =
+translator { onInternalMessage, onAuthSuccess, onAuthError } msg =
     case msg of
         ForSelf internal ->
             onInternalMessage internal
+
+        ForParent AuthenticationSuccess ->
+            onAuthSuccess
 
         ForParent (AuthenticationError error) ->
             onAuthError error
