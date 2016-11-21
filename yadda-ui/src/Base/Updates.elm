@@ -160,7 +160,7 @@ update msg model =
         PostRepoResult result ->
             case result of
                 Ok success ->
-                    ( model |> (Debug.log <| "PostRepo: " ++ (toString success)), Cmd.none )
+                    ( model, Cmd.none )
 
                 Err err ->
                     showAlert model "error" (toString err)
