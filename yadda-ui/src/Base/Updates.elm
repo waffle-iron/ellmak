@@ -202,11 +202,8 @@ update msg model =
                         repos =
                             rightPanel.repos
 
-                        newRepos =
-                            success :: repos
-
                         newRightPanel =
-                            { rightPanel | repos = newRepos }
+                            { rightPanel | repos = Dict.insert success.shortName success repos }
 
                         newLeftPanel =
                             LeftPanel.Model.defaultLeftPanel
@@ -229,11 +226,8 @@ update msg model =
                         repos =
                             rightPanel.repos
 
-                        newRepos =
-                            List.append success repos
-
                         newRightPanel =
-                            { rightPanel | repos = newRepos }
+                            { rightPanel | repos = Dict.fromList <| List.map (\x -> ( x.shortName, x )) success }
 
                         newModel =
                             { model | rightPanel = newRightPanel }

@@ -1,14 +1,15 @@
 module RightPanel.Model exposing (..)
 
+import Dict exposing (Dict)
 import Repo.Model exposing (Repository)
 
 
 type alias RightPanel =
-    { repos : List Repository
+    { repos : Dict String Repository
     }
 
 
 defaultRightPanel : RightPanel
 defaultRightPanel =
-    { repos = []
+    { repos = Dict.empty
     }

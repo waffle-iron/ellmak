@@ -1,6 +1,7 @@
 module RightPanel.View exposing (..)
 
 import Base.Model exposing (..)
+import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -17,9 +18,15 @@ panelContent heading body =
         ]
 
 
-repoPanel : Int -> Repository -> Html RightPanelMsg
-repoPanel idx repo =
+repoPanel : Int -> ( String, Repository ) -> Html RightPanelMsg
+repoPanel idx repoTuple =
     let
+        shortName =
+            Tuple.first repoTuple
+
+        repo =
+            Tuple.second repoTuple
+
         idStr =
             "heading-" ++ (toString idx)
 
@@ -40,7 +47,7 @@ repoPanel idx repo =
                         , attribute "aria-expanded" "true"
                         , attribute "aria-controls" collStr
                         ]
-                        [ text repo.shortName ]
+                        [ text shortName ]
                     ]
                 ]
             , div [ class "panel-collapse collapse", id collStr ]
@@ -88,7 +95,7 @@ view model =
                         , attribute "role" "tablist"
                         , attribute "aria-multiselectable" "true"
                         ]
-                        (List.indexedMap repoPanel model.repos)
+                        (List.indexedMap repoPanel <| Dict.toList model.repos)
                     ]
                 ]
             ]
