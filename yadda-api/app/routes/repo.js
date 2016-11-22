@@ -1,5 +1,5 @@
 import express from 'express'
-import { info, warn } from '../utils/logger'
+import { warn } from '../utils/logger'
 import store from '../redux/store'
 import _ from 'lodash'
 
@@ -7,6 +7,7 @@ const router = express.Router()
 
 router.get('/', (req, res, next) => {
   const dbStore = store.getState().db
+
   if (dbStore && !_.isEmpty(dbStore.db)) {
     const db = dbStore.db
     const reposCollection = db.collection('repos')
@@ -22,23 +23,18 @@ router.get('/', (req, res, next) => {
 })
 
 router.post('/', (req, res, next) => {
-  const { url, branches, frequency, shortName } = req.body
-
-  info('URL:', url)
-  info('Branches:', branches)
-  info('Frequency:', frequency)
-  info('Short Name:', shortName)
-
+  const { remotes, branches, frequency, shortName } = req.body
   const dbStore = store.getState().db
+
   if (dbStore && !_.isEmpty(dbStore.db)) {
     const db = dbStore.db
     const reposCollection = db.collection('repos')
 
     reposCollection.findAndModify(
-      {url: url},
+      {shortName: shortName},
       [['_id', 'asc']],
       {$set: {
-        url: url,
+        remotes: remotes,
         branches: branches,
         frequency: frequency,
         shortName: shortName

@@ -6,6 +6,7 @@ import Auth.Updates exposing (authenticated)
 import Base.Messages exposing (..)
 import Base.Model exposing (..)
 import Conversions.Model exposing (toFlags)
+import Dict exposing (toList)
 import Http exposing (..)
 import Json.Decode as Decode exposing (..)
 import Json.Encode as Encode exposing (..)
@@ -92,18 +93,28 @@ repoSuffix =
 
 repoEncoder : LeftPanel -> Encode.Value
 repoEncoder model =
-    Encode.object
-        [ ( "url", Encode.string model.repoUrl )
-        , ( "branches", Encode.list (List.map Encode.string model.branches) )
-        , ( "frequency", Encode.string model.frequency )
-        , ( "shortName", Encode.string model.shortName )
-        ]
+    let
+        additionalRemotesValues =
+            Dict.values model.addRemotesDict
+
+        remotesToAppend =
+            Dict.fromList additionalRemotesValues
+
+        allRemotes =
+            Dict.union model.remotesDict remotesToAppend
+    in
+        Encode.object
+            [ ( "remotes", Encode.object <| Dict.toList <| Dict.map (\k v -> Encode.string v) allRemotes )
+            , ( "branches", Encode.list (List.map Encode.string model.branches) )
+            , ( "frequency", Encode.string model.frequency )
+            , ( "shortName", Encode.string model.shortName )
+            ]
 
 
 repoDecoder : Decoder Repository
 repoDecoder =
     map4 Repository
-        (at [ "url" ] Decode.string)
+        (at [ "remotes" ] (Decode.dict Decode.string))
         (at [ "branches" ] (Decode.list Decode.string))
         (at [ "frequency" ] Decode.string)
         (at [ "shortName" ] Decode.string)
@@ -197,10 +208,13 @@ update msg model =
                         newRightPanel =
                             { rightPanel | repos = newRepos }
 
+                        newLeftPanel =
+                            LeftPanel.Model.defaultLeftPanel
+
                         newModel =
-                            { model | rightPanel = newRightPanel }
+                            { model | rightPanel = newRightPanel, leftPanel = newLeftPanel }
                     in
-                        ( newModel, Cmd.none )
+                        ( newModel, newUrl "#" )
 
                 Err err ->
                     showAlert model "error" (toString err)

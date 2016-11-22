@@ -6,12 +6,14 @@ import LeftPanel.Model exposing (LeftPanel)
 type InternalMsg
     = -- UI Messages
       Eat
+    | NewRemoteRow String
       -- Navigation Messages
     | ToHome
       -- Input Messages
     | ClickAddRepo
-    | SetRepoUrl String
-    | SetRemotes String
+    | SetOriginRemote String
+    | SetAdditionalRepoKey Int String
+    | SetAdditionalRepoValue Int String
     | SetBranches String
     | SetFrequency String
     | SetShortName String

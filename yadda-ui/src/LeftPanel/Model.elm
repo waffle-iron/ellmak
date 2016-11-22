@@ -1,12 +1,14 @@
 module LeftPanel.Model exposing (..)
 
+import Dict exposing (Dict, empty)
 import Routing.Router exposing (Route(Home))
 
 
 type alias LeftPanel =
     { route : Route
-    , repoUrl : String
-    , remotes : List String
+    , remotesCount : Int
+    , remotesDict : Dict String String
+    , addRemotesDict : Dict Int ( String, String )
     , branches : List String
     , frequency : String
     , shortName : String
@@ -16,8 +18,9 @@ type alias LeftPanel =
 defaultLeftPanel : LeftPanel
 defaultLeftPanel =
     { route = Home
-    , repoUrl = ""
-    , remotes = []
+    , remotesCount = 0
+    , remotesDict = Dict.empty
+    , addRemotesDict = Dict.empty
     , branches = []
     , frequency = ""
     , shortName = ""

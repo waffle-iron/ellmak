@@ -1,5 +1,6 @@
 module LeftPanel.Updates exposing (..)
 
+import Dict exposing (Dict, insert)
 import LeftPanel.Messages exposing (..)
 import LeftPanel.Model exposing (LeftPanel)
 import Navigation exposing (newUrl)
@@ -12,6 +13,26 @@ generateParentMsg externalMsg =
     Task.perform ForParent (Task.succeed externalMsg)
 
 
+insertValue : Int -> String -> Dict Int ( String, String ) -> Dict Int ( String, String )
+insertValue idx value dict =
+    case (Dict.get idx dict) of
+        Just ( k, _ ) ->
+            Dict.insert idx ( k, value ) dict
+
+        Nothing ->
+            Dict.insert idx ( "", value ) dict
+
+
+insertKey : Int -> String -> Dict Int ( String, String ) -> Dict Int ( String, String )
+insertKey idx key dict =
+    case (Dict.get idx dict) of
+        Just ( _, v ) ->
+            Dict.insert idx ( key, v ) dict
+
+        Nothing ->
+            Dict.insert idx ( key, "" ) dict
+
+
 update : InternalMsg -> LeftPanel -> ( LeftPanel, Cmd Msg )
 update msg model =
     case msg of
@@ -21,18 +42,55 @@ update msg model =
         Eat ->
             ( model, Cmd.none )
 
+        NewRemoteRow val ->
+            case (String.isEmpty val) of
+                True ->
+                    ( model, Cmd.none )
+
+                False ->
+                    ( { model | remotesCount = model.remotesCount + 1 }, Cmd.none )
+
         ClickAddRepo ->
             ( model, generateParentMsg <| PostRepo model )
 
-        SetRepoUrl repoUrl ->
-            ( { model | repoUrl = repoUrl }, Cmd.none )
-
-        SetRemotes remotesStr ->
+        SetOriginRemote repoUrl ->
             let
-                remotes =
-                    split "\n" remotesStr
+                { remotesDict } =
+                    model
+
+                newRemotesDict =
+                    Dict.insert "origin" repoUrl remotesDict
+
+                newModel =
+                    { model | remotesDict = newRemotesDict }
             in
-                ( { model | remotes = remotes }, Cmd.none )
+                ( newModel |> Debug.log "SetOriginRemote", Cmd.none )
+
+        SetAdditionalRepoKey idx key ->
+            let
+                { addRemotesDict } =
+                    model
+
+                newAddRemotesDict =
+                    insertKey idx key addRemotesDict
+
+                newModel =
+                    { model | addRemotesDict = newAddRemotesDict }
+            in
+                ( newModel |> Debug.log "SetAdditionalRepoKey", Cmd.none )
+
+        SetAdditionalRepoValue idx value ->
+            let
+                { addRemotesDict } =
+                    model
+
+                newAddRemotesDict =
+                    insertValue idx value addRemotesDict
+
+                newModel =
+                    { model | addRemotesDict = newAddRemotesDict }
+            in
+                ( newModel |> Debug.log "SetAdditionalRepoValue", Cmd.none )
 
         SetBranches branchStr ->
             let
