@@ -7,6 +7,7 @@ import UrlParser exposing (..)
 type Route
     = Home
     | AddRepo
+    | EditRepo
     | RemoveRepo
     | NotFound
 
@@ -16,6 +17,7 @@ matchers =
     oneOf
         [ map Home top
         , map AddRepo (s "addrepo")
+        , map EditRepo (s "editrepo")
         , map RemoveRepo (s "removerepo")
         ]
 

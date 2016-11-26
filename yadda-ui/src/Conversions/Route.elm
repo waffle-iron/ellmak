@@ -12,6 +12,9 @@ toString route =
         AddRepo ->
             "addrepo"
 
+        EditRepo ->
+            "editrepo"
+
         RemoveRepo ->
             "removerepo"
 

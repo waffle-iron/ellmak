@@ -64,7 +64,7 @@ update msg model =
                 newModel =
                     { model | remotesDict = newRemotesDict }
             in
-                ( newModel |> Debug.log "SetOriginRemote", Cmd.none )
+                ( newModel, Cmd.none )
 
         SetAdditionalRepoKey idx key ->
             let
@@ -77,7 +77,7 @@ update msg model =
                 newModel =
                     { model | addRemotesDict = newAddRemotesDict }
             in
-                ( newModel |> Debug.log "SetAdditionalRepoKey", Cmd.none )
+                ( newModel, Cmd.none )
 
         SetAdditionalRepoValue idx value ->
             let
@@ -90,7 +90,7 @@ update msg model =
                 newModel =
                     { model | addRemotesDict = newAddRemotesDict }
             in
-                ( newModel |> Debug.log "SetAdditionalRepoValue", Cmd.none )
+                ( newModel, Cmd.none )
 
         SetBranches branchStr ->
             let

@@ -102,7 +102,16 @@ update : InternalMsg -> Authentication -> String -> ( Authentication, Cmd Msg )
 update message auth baseUrl =
     case message of
         Authenticated authenticated ->
-            ( { auth | authenticated = authenticated }, generateParentMsg AuthenticationSuccess )
+            let
+                nextCmd =
+                    case authenticated of
+                        True ->
+                            generateParentMsg AuthenticationSuccess
+
+                        False ->
+                            Cmd.none
+            in
+                ( { auth | authenticated = authenticated }, nextCmd )
 
         AuthUserResult result ->
             case result of

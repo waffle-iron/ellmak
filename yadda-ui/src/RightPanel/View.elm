@@ -52,7 +52,9 @@ repoPanel idx repoTuple =
                 ]
             , div [ class "panel-collapse collapse", id collStr ]
                 [ div [ class "panel-body" ]
-                    [ text "One"
+                    [ button [ class "btn btn-default", onClick ToEdit ]
+                        [ span [ class "glyphicon glyphicon-cog" ] []
+                        ]
                     ]
                 ]
             ]

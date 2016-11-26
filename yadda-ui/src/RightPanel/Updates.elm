@@ -11,6 +11,9 @@ update msg model =
         ToAdd ->
             ( model, newUrl ("#addrepo") )
 
+        ToEdit ->
+            ( model, newUrl ("#editrepo") )
+
         ToRemove ->
             ( model, newUrl ("#removerepo") )
 

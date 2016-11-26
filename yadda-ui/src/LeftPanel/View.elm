@@ -128,7 +128,12 @@ view : LeftPanel -> Html Msg
 view model =
     case model.route of
         Home ->
-            panelContent "Repositories"
+            panelContent "Messages"
+                [ p [] [ strong [] [ text "Not yet implemented!" ] ]
+                ]
+
+        EditRepo ->
+            panelContent "Edit Repository"
                 [ p [] [ strong [] [ text "Not yet implemented!" ] ]
                 ]
 
