@@ -1,22 +1,22 @@
 // ----------------------------------------------------------------------
 // Constants
 // ----------------------------------------------------------------------
-export const YADDA_DB_CONNECTED = 'yadda/db/connected'
-export const YADDA_DB_DISCONNECTED = 'yadda/db/disconnect'
+export const ELLMAK_DB_CONNECTED = 'ellmak/db/connected'
+export const ELLMAK_DB_DISCONNECTED = 'ellmak/db/disconnect'
 
 // ----------------------------------------------------------------------
 // Actions
 // ----------------------------------------------------------------------
 export function connected (db) {
   return {
-    type: YADDA_DB_CONNECTED,
+    type: ELLMAK_DB_CONNECTED,
     db: db
   }
 }
 
 export function disonnected () {
   return {
-    type: YADDA_DB_DISCONNECTED
+    type: ELLMAK_DB_DISCONNECTED
   }
 }
 
@@ -32,10 +32,10 @@ export const databaseActions = {
 // Action Handlers
 // ----------------------------------------------------------------------
 const ACTION_HANDLERS = {
-  [YADDA_DB_CONNECTED]: (state, action) => {
+  [ELLMAK_DB_CONNECTED]: (state, action) => {
     return { ...state, db: action.db }
   },
-  [YADDA_DB_DISCONNECTED]: (state, action) => {
+  [ELLMAK_DB_DISCONNECTED]: (state, action) => {
     return initialState
   }
 }

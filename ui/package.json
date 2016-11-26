@@ -1,7 +1,7 @@
 {
-  "name": "yadda",
+  "name": "ellmak",
   "version": "0.1.0",
-  "description": "Yadda yadda yadda",
+  "description": "ellmak ellmak ellmak",
   "main": "index.js",
   "scripts": {
     "build:dev": "better-npm-run build-dev",
@@ -29,7 +29,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/CraZySacX/yadda.git"
+    "url": "git+ssh://git@github.com/CraZySacX/ellmak.git"
   },
   "keywords": [
     "elm"
@@ -37,9 +37,9 @@
   "author": "Jason Ozias",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/CraZySacX/yadda/issues"
+    "url": "https://github.com/CraZySacX/ellmak/issues"
   },
-  "homepage": "https://github.com/CraZySacX/yadda#readme",
+  "homepage": "https://github.com/CraZySacX/ellmak#readme",
   "devDependencies": {
     "better-npm-run": "0.0.13",
     "bootstrap-loader": "^1.3.1",

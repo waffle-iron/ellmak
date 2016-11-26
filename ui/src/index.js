@@ -32,7 +32,7 @@ if (__PROD__) {
 
 var Elm = require('./Main');
 
-var storedFlags = localStorage.getItem('yadda-flags');
+var storedFlags = localStorage.getItem('ellmak-flags');
 var flags = storedFlags ? JSON.parse(storedFlags) : null;
 
 if (flags === null) {
@@ -66,11 +66,11 @@ if (flags === null) {
 var elmApp = Elm.Main.fullscreen(flags);
 
 elmApp.ports.storeFlags.subscribe(function(flags) {
-  localStorage.setItem('yadda-flags', JSON.stringify(flags));
+  localStorage.setItem('ellmak-flags', JSON.stringify(flags));
 });
 
 elmApp.ports.removeFlags.subscribe(function() {
-  localStorage.removeItem('yadda-flags');
+  localStorage.removeItem('ellmak-flags');
 });
 
 elmApp.ports.alertify.subscribe(function(config) {

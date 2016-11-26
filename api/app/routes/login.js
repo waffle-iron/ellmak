@@ -35,7 +35,7 @@ router.post('/', (req, res, next) => {
           if (match) {
             var token = jwt.sign(
               { username: username, name: doc.name },
-              process.env.YADDA_JWT_SECRET,
+              process.env.ELLMAK_JWT_SECRET,
               { algorithm: 'HS512', expiresIn: '1h' }
             )
             res.status(200).json({id_token: token})

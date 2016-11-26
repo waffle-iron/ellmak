@@ -5,11 +5,11 @@ MAINTAINER Jason Ozias <jason.g.ozias@gmail.com>
 EXPOSE 3000
 
 # Create app directory
-RUN mkdir -p /usr/src/yadda
-WORKDIR /usr/src/yadda
+RUN mkdir -p /usr/src/ellmak
+WORKDIR /usr/src/ellmak
 
 # Install app dependencies
-COPY api/package.json /usr/src/yadda/package.json
+COPY api/package.json /usr/src/ellmak/package.json
 RUN npm i && npm prune && npm dedupe
 
 # Source not bundled here.

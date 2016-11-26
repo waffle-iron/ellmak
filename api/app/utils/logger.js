@@ -64,7 +64,7 @@ const banner = () => {
   logger.info(yInfo('4a61736f6e204f7a696173'))
   logger.info()
   logger.info(yInfo('Running %s'), app.get('env'))
-  logger.info(yInfo('YADDA_CORS_WHITELIST: %s'), process.env.YADDA_CORS_WHITELIST)
+  logger.info(yInfo('ELLMAK_CORS_WHITELIST: %s'), process.env.ELLMAK_CORS_WHITELIST)
 }
 
 const trace = (message, ...rest) => {

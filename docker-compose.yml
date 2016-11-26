@@ -1,27 +1,27 @@
 version: '2'
 
 volumes:
-  yadda_data:
-  yadda_repo_data:
+  ellmak_data:
+  ellmak_repo_data:
 
 services:
-  yadda:
-    image: saizo/yadda:dev
-    env_file: ./.yadda/yadda.env
+  ellmak:
+    image: saizo/ellmak:dev
+    env_file: ./.ellmak/ellmak.env
     volumes:
-      - yadda_repo_data:/data/repo
+      - ellmak_repo_data:/data/repo
     links:
-      - yaddadb
+      - ellmakdb
   nginx:
-    image: saizo/yadda_nginx:dev
+    image: saizo/ellmak_nginx:dev
     ports:
       - "443:443"
     links:
-      - "yadda"
-  yaddadb:
+      - "ellmak"
+  ellmakdb:
     image: mongo:latest
-    env_file: ./.yadda/mongodb.env
+    env_file: ./.ellmak/mongodb.env
     volumes:
-      - yadda_data:/data/db
+      - ellmak_data:/data/db
     ports:
       - "27017:27017"

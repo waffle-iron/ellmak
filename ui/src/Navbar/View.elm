@@ -52,7 +52,7 @@ view model =
                         , span [ class "icon-bar" ] []
                         ]
                     , a [ class "navbar-brand", href "#" ]
-                        [ img [ class "brand", alt "Yadda", src "lambda_orange.png" ] []
+                        [ img [ class "brand", alt "ellmak", src "lambda_orange.png" ] []
                         ]
                     ]
                 , div [ class "collapse navbar-collapse", id "navbar-collapse-1" ]

@@ -163,7 +163,7 @@ view model =
                     , helpTextWell "repo-refs" "Branches To Monitor Help Text"
                     , addRepoFormGroupText 3 "frequency" "Frequency" "15m" (ForSelf << SetFrequency)
                     , helpTextWell "frequency" "Frequency Help Text"
-                    , addRepoFormGroupText 4 "short-name" "Short Name" "Optional: CraZySacX/yadda" (ForSelf << SetShortName)
+                    , addRepoFormGroupText 4 "short-name" "Short Name" "Optional: CraZySacX/ellmak" (ForSelf << SetShortName)
                     , helpTextWell "short-name" "Short Name Help Text"
                     ]
                 , div [ class "row" ]

@@ -10,7 +10,7 @@ owd = os.getcwd()
 # Setup the supported command-line arguments
 parser = argparse.ArgumentParser(description='Push project Docker images')
 parser.add_argument('-n', '--nginx', help='Turn off nginx build', action="store_true")
-parser.add_argument('-y', '--yadda', help='Turn off yadda build', action="store_true")
+parser.add_argument('-y', '--ellmak', help='Turn off ellmak build', action="store_true")
 
 # Parse the command-line arguments
 args = parser.parse_args()
@@ -19,12 +19,12 @@ args = parser.parse_args()
 os.chdir(os.path.join(os.path.dirname( __file__ ), '..' ))
 
 if not args.nginx:
-  print('Pushing Yadda nginx image')
-  check_call(["docker", "push", "saizo/yadda_nginx:dev"])
+  print('Pushing ellmak nginx image')
+  check_call(["docker", "push", "saizo/ellmak_nginx:dev"])
 
-if not args.yadda:
-  print('Pushing Yadda image')
-  check_call(["docker", "push", "saizo/yadda:dev"])
+if not args.ellmak:
+  print('Pushing ellmak image')
+  check_call(["docker", "push", "saizo/ellmak:dev"])
 
 # Change back to the original directory
 os.chdir(owd)

@@ -10,7 +10,7 @@ owd = os.getcwd()
 # Setup the supported command-line arguments
 parser = argparse.ArgumentParser(description='Build project Docker images')
 parser.add_argument('-n', '--nginx', help='Turn off nginx build', action="store_true")
-parser.add_argument('-y', '--yadda', help='Turn off yadda build', action="store_true")
+parser.add_argument('-y', '--ellmak', help='Turn off ellmak build', action="store_true")
 
 # Parse the command-line arguments
 args = parser.parse_args()
@@ -19,7 +19,7 @@ args = parser.parse_args()
 os.chdir(os.path.join(os.path.dirname( __file__ ), '..' ))
 
 if not args.nginx:
-  print('Building DataQ nginx image')
+  print('Building ellmak nginx image')
   folder = 'ui/dist'
   for afile in os.listdir(folder):
     fp = os.path.join(folder, afile)
@@ -35,10 +35,10 @@ if not args.nginx:
   check_call(["npm", "run", "build"])
   del os.environ["NODE_ENV"]
   os.chdir(cwd)
-  check_call(["docker", "build", "-t", "saizo/yadda_nginx:dev", "-f", "Dockerfile.nginx", "."])
+  check_call(["docker", "build", "-t", "saizo/ellmak_nginx:dev", "-f", "Dockerfile.nginx", "."])
 
-if not args.yadda:
-  print('Building Yadda image')
+if not args.ellmak:
+  print('Building ellmak image')
   folder = 'api/dist'
   for afile in os.listdir(folder):
     fp = os.path.join(folder, afile)
@@ -54,7 +54,7 @@ if not args.yadda:
   check_call(["npm", "run", "build"])
   del os.environ["NODE_ENV"]
   os.chdir(cwd)
-  check_call(["docker", "build", "-t", "saizo/yadda:dev", "-f", "Dockerfile.yadda", "."])
+  check_call(["docker", "build", "-t", "saizo/ellmak:dev", "-f", "Dockerfile.ellmak", "."])
 
 # Change back to the original directory
 os.chdir(owd)

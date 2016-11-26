@@ -15,7 +15,7 @@ const app = express()
 
 banner()
 
-var whitelist = process.env.YADDA_CORS_WHITELIST.split(',')
+var whitelist = process.env.ELLMAK_CORS_WHITELIST.split(',')
 var corsOptions = {
   origin: (origin, callback) => {
     var originIsWhitelisted = whitelist.indexOf(origin) !== -1
@@ -29,7 +29,7 @@ var corsOptions = {
 app.use(cors(corsOptions))
 app.options('*', cors())
 
-app.use(jwt({secret: process.env.YADDA_JWT_SECRET}).unless({
+app.use(jwt({secret: process.env.ELLMAK_JWT_SECRET}).unless({
   path: ['/api/v1', '/api/v1/login']
 }))
 
