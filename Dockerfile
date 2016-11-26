@@ -9,10 +9,10 @@ RUN mkdir -p /usr/src/yadda
 WORKDIR /usr/src/yadda
 
 # Install app dependencies
-COPY yadda-api/package.json /usr/src/yadda/package.json
+COPY api/package.json /usr/src/yadda/package.json
 RUN npm i && npm prune && npm dedupe
 
 # Source not bundled here.
-# Hosted from the yadda-api local directory.
+# Hosted from the api local directory.
 
 CMD [ "npm", "start" ]

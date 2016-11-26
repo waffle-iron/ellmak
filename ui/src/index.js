@@ -23,11 +23,11 @@ window.onerror = function(msg, url, line, col, error) {
 };
 
 if (__DEV__) {
-  console.info('[YADDA-UI]', 'Running dev environment')
+  console.info('[UI]', 'Running dev environment')
 }
 
 if (__PROD__) {
-  console.warn('[YADDA-UI]', 'Running production environment')
+  console.warn('[UI]', 'Running production environment')
 }
 
 var Elm = require('./Main');

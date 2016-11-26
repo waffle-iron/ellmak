@@ -57,7 +57,7 @@ if (__DEV__) {
       __PROD__: __PROD__,
       BASE_URL: JSON.stringify("http://localhost:3000/api/v1"),
       UI_VERSION: JSON.stringify("v" + require("./package.json").version),
-      API_VERSION: JSON.stringify("v" + require("../yadda-api/package.json").version)
+      API_VERSION: JSON.stringify("v" + require("../api/package.json").version)
     }),
     new webpack.NoErrorsPlugin()
   )
@@ -74,7 +74,7 @@ if (__INT__ || __STG__ || __PROD__) {
       __PROD__: __PROD__,
       BASE_URL: JSON.stringify("api/v1"),
       UI_VERSION: JSON.stringify("v" + require("./package.json").version),
-      API_VERSION: JSON.stringify("v" + require("../yadda-api/package.json").version)
+      API_VERSION: JSON.stringify("v" + require("../api/package.json").version)
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.DedupePlugin(),

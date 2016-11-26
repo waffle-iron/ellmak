@@ -20,7 +20,7 @@ config = {
   devtool: 'sourcemap',
   output: {
     path: paths.base(env.dir_dist),
-    filename: 'yadda-api.js'
+    filename: 'api.js'
   },
   module: {
     preLoaders: [

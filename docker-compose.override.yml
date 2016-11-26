@@ -5,7 +5,7 @@ services:
     build: .
     image: saizo/yadda:local
     volumes:
-      - ./yadda-api/dist:/usr/src/yadda/dist
+      - ./api/dist:/usr/src/yadda/dist
     environment:
       - YADDA_CORS_WHITELIST=http://localhost:3000,http://localhost:8080
     ports:
@@ -15,7 +15,7 @@ services:
     volumes:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./.yadda/ssl:/etc/nginx/ssl:ro
-      - ./yadda-ui/dist:/www/data
+      - ./ui/dist:/www/data
   yaddadb-seed:
     build:
       context: .

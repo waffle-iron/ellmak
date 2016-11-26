@@ -3,4 +3,4 @@ MAINTAINER Jason Ozias <jason.g.ozias@gmail.com>
 
 COPY .yadda/ssl/ /etc/nginx/ssl/
 COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY yadda-ui/dist /www/data
+COPY ui/dist /www/data

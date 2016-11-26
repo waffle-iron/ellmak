@@ -1,5 +1,5 @@
 {
-  "name": "yadda-api",
+  "name": "api",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "betterScripts": {
     "start": {
-      "command": "node dist/yadda-api.js"
+      "command": "node dist/api.js"
     },
     "build-dev": {
       "command": "webpack --config config/webpack.config.js",
