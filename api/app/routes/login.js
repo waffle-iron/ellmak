@@ -30,7 +30,7 @@ router.post('/', (req, res, next) => {
         error('User %s not found: %j', username, err)
         res.status(401).send('User not found')
         return
-      } else {
+      } else if (!_.isEmpty(doc)) {
         argon2.verify(doc.password, password).then(match => {
           if (match) {
             var token = jwt.sign(
@@ -45,6 +45,10 @@ router.post('/', (req, res, next) => {
             return
           }
         })
+      } else {
+        warn('User %s not found', username)
+        res.status(401).send('No user documents found')
+        return
       }
     })
   } else {
