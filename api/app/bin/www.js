@@ -1,4 +1,5 @@
 import app from '../app'
+import { Server as WebSocketServer } from 'ws'
 import { createServer } from 'http'
 import { error, info, trace } from '../utils/logger'
 import { connect } from '../utils/mongo'
@@ -35,6 +36,20 @@ app.set('port', port)
  * Create HTTP server.
  */
 const server = createServer(app)
+const wss = new WebSocketServer({server: server})
+
+wss.on('connection', (ws) => {
+  info('websocket connection open')
+
+  ws.on('message', function (data, flags) {
+    info('websocket received a message')
+    ws.send(JSON.stringify({msg: data}))
+  })
+
+  ws.on('close', () => {
+    info('websocket connection closed')
+  })
+})
 
 /**
  * Listen on provided port, on all network interfaces.
