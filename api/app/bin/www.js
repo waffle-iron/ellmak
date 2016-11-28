@@ -3,6 +3,7 @@ import { Server as WebSocketServer } from 'ws'
 import { createServer } from 'http'
 import { error, info, trace } from '../utils/logger'
 import { connect } from '../utils/mongo'
+import messageHandler from '../ws/handler'
 
 connect((err) => {
   if (err) {
@@ -41,9 +42,14 @@ const wss = new WebSocketServer({server: server})
 wss.on('connection', (ws) => {
   info('websocket connection open')
 
-  ws.on('message', function (data, flags) {
-    info('websocket received a message')
-    ws.send(JSON.stringify({msg: data}))
+  ws.on('message', (data, flags) => {
+    new Promise((resolve, reject) => {
+      messageHandler(data, flags, resolve, reject)
+    }).then((result) => {
+      ws.send(JSON.stringify({msg: result}))
+    }).catch((err) => {
+      ws.send(JSON.stringify({err: err}))
+    })
   })
 
   ws.on('close', () => {
