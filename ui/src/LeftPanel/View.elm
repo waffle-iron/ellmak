@@ -129,7 +129,7 @@ view model =
     case model.route of
         Home ->
             panelContent "Messages"
-                [ p [] [ strong [] [ text "Not yet implemented!" ] ]
+                [ button [ class "btn btn-default", onClick (ForSelf ClickSendMessage) ] [ text "Send Message" ]
                 ]
 
         EditRepo ->

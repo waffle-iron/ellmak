@@ -50,6 +50,7 @@ if (flags === null) {
 
   // Set the base API URL (the value is replaced by the webpack DefinePlugin)
   flags.baseUrl = BASE_URL;
+  flags.wsBaseUrl = WS_BASE_URL;
 
   // Set the version information (the value is replaced by the webpack DefinePlugin)
   flags.apiVersion = API_VERSION;

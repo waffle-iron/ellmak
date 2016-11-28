@@ -20,6 +20,7 @@ import Ports.Ports exposing (alertify, storeFlags)
 import Repo.Model exposing (Repository)
 import RightPanel.Updates exposing (update)
 import Routing.Router exposing (..)
+import WebSocket
 
 
 checkAuthExpiry : BaseModel -> Cmd BaseMsg
@@ -78,7 +79,7 @@ authTranslator =
 
 leftPanelTranslator : LeftPanel.Messages.Translator BaseMsg
 leftPanelTranslator =
-    LeftPanel.Messages.translator { onInternalMessage = LeftPanelMsg, onPostRepo = Base.Messages.PostRepo }
+    LeftPanel.Messages.translator { onInternalMessage = LeftPanelMsg, onPostRepo = Base.Messages.PostRepo, onSendWsMessage = SendWsMessage }
 
 
 checkExpiry : BaseModel -> Cmd BaseMsg
@@ -343,3 +344,12 @@ update msg model =
 
         Eat ->
             ( model, Cmd.none )
+
+        NewMessage message ->
+            ( model |> Debug.log message, Cmd.none )
+
+        SendWsMessage message ->
+            ( model, WebSocket.send model.wsBaseUrl message )
+
+        Tick newTime ->
+            ( model, WebSocket.send model.wsBaseUrl "heartbeat" )

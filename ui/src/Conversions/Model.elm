@@ -9,7 +9,7 @@ import Flags.Flags exposing (Flags)
 toFlags : BaseModel -> Flags
 toFlags model =
     let
-        { env, baseUrl, apiVersion, uiVersion, authentication, leftPanel, rightPanel } =
+        { env, baseUrl, wsBaseUrl, apiVersion, uiVersion, authentication, leftPanel, rightPanel } =
             model
 
         { route } =
@@ -24,6 +24,7 @@ toFlags model =
         Flags
             (Conversions.Environment.toString env)
             baseUrl
+            wsBaseUrl
             apiVersion
             uiVersion
             token

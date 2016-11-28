@@ -30,6 +30,7 @@ newConfig =
 type alias BaseModel =
     { env : Environment
     , baseUrl : String
+    , wsBaseUrl : String
     , apiVersion : String
     , uiVersion : String
     , authentication : Authentication
@@ -42,6 +43,7 @@ defaultBase : BaseModel
 defaultBase =
     { env = Development
     , baseUrl = "http://localhost:3000/api/v1"
+    , wsBaseUrl = "http://localhost:3000"
     , apiVersion = ""
     , uiVersion = ""
     , authentication = defaultAuthentication

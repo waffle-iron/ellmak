@@ -10,6 +10,7 @@ import Navbar.Messages exposing (..)
 import Navigation exposing (Location)
 import Repo.Model exposing (Repository)
 import RightPanel.Messages exposing (RightPanelMsg)
+import Time exposing (Time)
 
 
 type BaseMsg
@@ -22,6 +23,7 @@ type BaseMsg
     | AuthError Auth.Model.AuthError
     | AuthSuccess
     | PostRepo LeftPanel.Model.LeftPanel
+    | SendWsMessage String
       -- Navigation Messages
     | LocationChange Location
     | ToHome
@@ -36,3 +38,6 @@ type BaseMsg
     | CloneRequest (Result Http.Error String)
     | PostRepoResult (Result Http.Error Repository)
     | GetRepoResult (Result Http.Error (List Repository))
+      -- WebSocket Listener
+    | NewMessage String
+    | Tick Time

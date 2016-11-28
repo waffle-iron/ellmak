@@ -42,6 +42,7 @@ toBaseModel maybeFlags route =
                 BaseModel
                     (toEnvironment flags.env)
                     flags.baseUrl
+                    flags.wsBaseUrl
                     flags.apiVersion
                     flags.uiVersion
                     (toAuthentication flags)

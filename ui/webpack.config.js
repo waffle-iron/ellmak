@@ -56,6 +56,7 @@ if (__DEV__) {
       __STG__: __STG__,
       __PROD__: __PROD__,
       BASE_URL: JSON.stringify("http://localhost:3000/api/v1"),
+      WS_BASE_URL: JSON.stringify("ws://localhost:3000"),
       UI_VERSION: JSON.stringify("v" + require("./package.json").version),
       API_VERSION: JSON.stringify("v" + require("../api/package.json").version)
     }),
@@ -73,6 +74,7 @@ if (__INT__ || __STG__ || __PROD__) {
       __STG__: __STG__,
       __PROD__: __PROD__,
       BASE_URL: JSON.stringify("api/v1"),
+      WS_BASE_URL: JSON.stringify("wss://ellmak.io/api/ws"),
       UI_VERSION: JSON.stringify("v" + require("./package.json").version),
       API_VERSION: JSON.stringify("v" + require("../api/package.json").version)
     }),

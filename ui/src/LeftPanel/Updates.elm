@@ -53,6 +53,9 @@ update msg model =
         ClickAddRepo ->
             ( model, generateParentMsg <| PostRepo model )
 
+        ClickSendMessage ->
+            ( model, generateParentMsg <| SendWsMessage "testing" )
+
         SetOriginRemote repoUrl ->
             let
                 { remotesDict } =
