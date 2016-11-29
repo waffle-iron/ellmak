@@ -15,10 +15,10 @@ const app = express()
 
 banner()
 
-var whitelist = process.env.ELLMAK_CORS_WHITELIST.split(',')
-var corsOptions = {
+const whitelist = process.env.ELLMAK_CORS_WHITELIST.split(',')
+const corsOptions = {
   origin: (origin, callback) => {
-    var originIsWhitelisted = whitelist.indexOf(origin) !== -1
+    const originIsWhitelisted = whitelist.indexOf(origin) !== -1
     callback(null, originIsWhitelisted)
   },
   credentials: true,

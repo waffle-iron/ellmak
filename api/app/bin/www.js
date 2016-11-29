@@ -1,9 +1,8 @@
 import app from '../app'
-import { Server as WebSocketServer } from 'ws'
 import { createServer } from 'http'
 import { error, info, trace } from '../utils/logger'
 import { connect } from '../utils/mongo'
-import messageHandler from '../ws/handler'
+import { startWss } from '../utils/wss'
 
 connect((err) => {
   if (err) {
@@ -37,25 +36,10 @@ app.set('port', port)
  * Create HTTP server.
  */
 const server = createServer(app)
-const wss = new WebSocketServer({server: server})
-
-wss.on('connection', (ws) => {
-  info('websocket connection open')
-
-  ws.on('message', (data, flags) => {
-    new Promise((resolve, reject) => {
-      messageHandler(data, flags, resolve, reject)
-    }).then((result) => {
-      ws.send(JSON.stringify({msg: result}))
-    }).catch((err) => {
-      ws.send(JSON.stringify({err: err}))
-    })
-  })
-
-  ws.on('close', () => {
-    info('websocket connection closed')
-  })
-})
+/**
+ * Start the WebSocketServer
+ */
+startWss(server)
 
 /**
  * Listen on provided port, on all network interfaces.

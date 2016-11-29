@@ -87,6 +87,14 @@ checkExpiry model =
     Cmd.map authTranslator (authenticated model.authentication)
 
 
+messageEncoder : BaseModel -> String -> Encode.Value
+messageEncoder model message =
+    Encode.object
+        [ ( "token", Encode.string model.authentication.token )
+        , ( "msg", Encode.string message )
+        ]
+
+
 repoSuffix : String
 repoSuffix =
     "/repo"
@@ -349,7 +357,7 @@ update msg model =
             ( model |> Debug.log message, Cmd.none )
 
         SendWsMessage message ->
-            ( model, WebSocket.send model.wsBaseUrl message )
+            ( model, WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model message )
 
         Tick newTime ->
             ( model, WebSocket.send model.wsBaseUrl "heartbeat" )
