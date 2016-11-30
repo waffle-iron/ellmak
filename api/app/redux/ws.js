@@ -2,6 +2,7 @@
 // Constants
 // ----------------------------------------------------------------------
 export const ELLMAK_WSS_SERVER = 'ellmak/wss/server'
+export const ELLMAK_WSS_ADD_CONN = 'ellmak/wss/addconn'
 
 // ----------------------------------------------------------------------
 // Actions
@@ -13,11 +14,21 @@ export function addServer (wss) {
   }
 }
 
+export function addConnection (username, uuid, ws) {
+  return {
+    type: ELLMAK_WSS_ADD_CONN,
+    username: username,
+    uuid: uuid,
+    ws: ws
+  }
+}
+
 // ----------------------------------------------------------------------
 // Exported Actions, useful for use with bindActionCreators
 // ----------------------------------------------------------------------
 export const wssActions = {
-  addServer
+  addServer,
+  addConnection
 }
 
 // ----------------------------------------------------------------------
@@ -26,6 +37,11 @@ export const wssActions = {
 const ACTION_HANDLERS = {
   [ELLMAK_WSS_SERVER]: (state, action) => {
     return { ...state, wss: action.wss }
+  },
+  [ELLMAK_WSS_ADD_CONN]: (state, action) => {
+    const connDetail = { uuid: action.uuid, conn: action.ws, lastUsed: Date.now() }
+    const newConns = { ...state.wsconns, [action.username]: connDetail }
+    return { ...state, wsconns: newConns }
   }
 }
 
@@ -33,7 +49,8 @@ const ACTION_HANDLERS = {
 // Initial Database State
 // ----------------------------------------------------------------------
 const initialState = {
-  wss: {}
+  wss: {},
+  wsconns: {}
 }
 
 // ----------------------------------------------------------------------

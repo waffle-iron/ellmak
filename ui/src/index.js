@@ -57,12 +57,15 @@ if (flags === null) {
   flags.uiVersion = UI_VERSION;
 
   // Set the auth related state
+  flags.username = ""
   flags.token = ""
   flags.expiry = 0
 
   // Set the home route
   flags.route = ""
 }
+
+flags.randomSeed = Math.floor(Math.random()*0xFFFFFFFF);
 
 var elmApp = Elm.Main.fullscreen(flags);
 

@@ -15,7 +15,7 @@ toFlags model =
         { route } =
             leftPanel
 
-        { token, payload } =
+        { username, token, payload } =
             authentication
 
         { expiry } =
@@ -23,10 +23,12 @@ toFlags model =
     in
         Flags
             (Conversions.Environment.toString env)
+            0
             baseUrl
             wsBaseUrl
             apiVersion
             uiVersion
+            username
             token
             expiry
             (Conversions.Route.toString route)

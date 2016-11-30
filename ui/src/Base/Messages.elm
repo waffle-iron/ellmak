@@ -38,6 +38,7 @@ type BaseMsg
     | CloneRequest (Result Http.Error String)
     | PostRepoResult (Result Http.Error Repository)
     | GetRepoResult (Result Http.Error (List Repository))
+    | RefreshTokenResult (Result Http.Error String)
       -- WebSocket Listener
     | NewMessage String
     | Tick Time

@@ -20,12 +20,9 @@ import Ports.Ports exposing (alertify, storeFlags)
 import Repo.Model exposing (Repository)
 import RightPanel.Updates exposing (update)
 import Routing.Router exposing (..)
+import Task exposing (perform)
+import Uuid
 import WebSocket
-
-
-checkAuthExpiry : BaseModel -> Cmd BaseMsg
-checkAuthExpiry model =
-    Cmd.map authTranslator (authenticated model.authentication)
 
 
 storeFlags : BaseModel -> Cmd BaseMsg
@@ -89,10 +86,21 @@ checkExpiry model =
 
 messageEncoder : BaseModel -> String -> Encode.Value
 messageEncoder model message =
-    Encode.object
-        [ ( "token", Encode.string model.authentication.token )
-        , ( "msg", Encode.string message )
-        ]
+    let
+        uuidStr =
+            case model.uuid of
+                Just uuid ->
+                    (Uuid.toString uuid)
+
+                Nothing ->
+                    ""
+    in
+        Encode.object
+            [ ( "token", Encode.string model.authentication.token )
+            , ( "username", Encode.string model.authentication.username )
+            , ( "uuid", Encode.string uuidStr )
+            , ( "msg", Encode.string message )
+            ]
 
 
 repoSuffix : String
@@ -166,6 +174,33 @@ getRepos model =
                 }
     in
         Http.send GetRepoResult request
+
+
+refreshDecoder : Decoder String
+refreshDecoder =
+    field "ok" Decode.string
+
+
+refreshToken : BaseModel -> Cmd BaseMsg
+refreshToken model =
+    let
+        request =
+            Http.request
+                { method = "PUT"
+                , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authentication.token)) ]
+                , url = (model.baseUrl ++ "/login")
+                , body = Http.emptyBody
+                , expect = Http.expectJson refreshDecoder
+                , timeout = Nothing
+                , withCredentials = True
+                }
+    in
+        Http.send RefreshTokenResult request
+
+
+sendMessage : String -> Cmd BaseMsg
+sendMessage message =
+    Task.perform SendWsMessage <| Task.succeed message
 
 
 update : BaseMsg -> BaseModel -> ( BaseModel, Cmd BaseMsg )
@@ -246,6 +281,14 @@ update msg model =
                 Err err ->
                     showAlert model "error" (toString err)
 
+        RefreshTokenResult result ->
+            case result of
+                Ok success ->
+                    ( model |> Debug.log success, Cmd.none )
+
+                Err err ->
+                    ( model, Cmd.none )
+
         RightPanelMsg subMsg ->
             let
                 ( updatedModel, rightPanelCmd ) =
@@ -267,7 +310,7 @@ update msg model =
                 ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map authTranslator authCmd ] )
 
         AuthSuccess ->
-            ( model, getRepos model )
+            ( model, Cmd.batch [ getRepos model, sendMessage "authenticated" ] )
 
         AuthError error ->
             case error of
@@ -360,4 +403,9 @@ update msg model =
             ( model, WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model message )
 
         Tick newTime ->
-            ( model, WebSocket.send model.wsBaseUrl "heartbeat" )
+            ( model
+            , Cmd.batch
+                [ WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model "heartbeat"
+                , refreshToken model
+                ]
+            )

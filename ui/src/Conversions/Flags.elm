@@ -5,8 +5,10 @@ import Base.Model exposing (BaseModel, defaultBase)
 import Conversions.String exposing (toEnvironment, toRoute)
 import Flags.Flags exposing (Flags)
 import LeftPanel.Model exposing (defaultLeftPanel)
+import Random.Pcg exposing (initialSeed, step)
 import RightPanel.Model exposing (defaultRightPanel)
 import Routing.Router exposing (Route)
+import Uuid exposing (uuidGenerator)
 
 
 toBaseModel : Maybe Flags -> Route -> BaseModel
@@ -27,8 +29,8 @@ toBaseModel maybeFlags route =
 
         Just flags ->
             let
-                authentication =
-                    defaultAuthentication
+                ( uuid, _ ) =
+                    step uuidGenerator <| initialSeed flags.randomSeed
 
                 rightPanel =
                     defaultRightPanel
@@ -41,6 +43,7 @@ toBaseModel maybeFlags route =
             in
                 BaseModel
                     (toEnvironment flags.env)
+                    (Just uuid)
                     flags.baseUrl
                     flags.wsBaseUrl
                     flags.apiVersion
@@ -62,4 +65,4 @@ toAuthentication flags =
         newPayload =
             { payload | expiry = flags.expiry }
     in
-        { authentication | token = flags.token, payload = newPayload }
+        { authentication | username = flags.username, token = flags.token, payload = newPayload }

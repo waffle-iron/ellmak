@@ -4,6 +4,7 @@ import Auth.Model exposing (Authentication, defaultAuthentication)
 import Env.Env exposing (Environment(Development))
 import LeftPanel.Model exposing (LeftPanel, defaultLeftPanel)
 import RightPanel.Model exposing (RightPanel, defaultRightPanel)
+import Uuid exposing (Uuid)
 
 
 type alias AlertifyConfig =
@@ -29,6 +30,7 @@ newConfig =
 
 type alias BaseModel =
     { env : Environment
+    , uuid : Maybe Uuid
     , baseUrl : String
     , wsBaseUrl : String
     , apiVersion : String
@@ -42,6 +44,7 @@ type alias BaseModel =
 defaultBase : BaseModel
 defaultBase =
     { env = Development
+    , uuid = Nothing
     , baseUrl = "http://localhost:3000/api/v1"
     , wsBaseUrl = "http://localhost:3000"
     , apiVersion = ""

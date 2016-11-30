@@ -1,11 +1,16 @@
 import express from 'express'
 import jwt from 'jsonwebtoken'
 import store from '../redux/store'
-import { error, warn } from '../utils/logger'
+import { error, trace, warn } from '../utils/logger'
 import _ from 'lodash'
 import argon2 from 'argon2'
 
 const router = express.Router()
+
+router.put('/', (req, res, next) => {
+  trace('Authorization Header:', req.headers.Authorization)
+  res.status(200).json({ok: 'ok'})
+})
 
 router.post('/', (req, res, next) => {
   const { username, password } = req.body
