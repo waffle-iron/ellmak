@@ -20,6 +20,7 @@ services:
       - "ellmak"
   ellmakdb:
     image: mongo:latest
+    command: [ "mongod", "--auth" ]
     env_file: ./.ellmak/mongodb.env
     volumes:
       - ellmak_data:/data/db

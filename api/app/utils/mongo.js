@@ -2,6 +2,7 @@ import { MongoClient as mongo } from 'mongodb'
 import store from '../redux/store'
 import { databaseActions } from '../redux/db'
 import _ from 'lodash'
+import { error, trace } from '../utils/logger'
 
 const connect = (callback) => {
   const { connected } = databaseActions
@@ -11,7 +12,17 @@ const connect = (callback) => {
     if (_.isEmpty(dbStore.db)) {
       mongo.connect('mongodb://ellmakdb:27017/ellmak', (err, db) => {
         if (err) return callback(err)
-        store.dispatch(connected(db))
+        db.authenticate('ellmak', process.env.ELLMAK_DB_PASSWORD, (err, result) => {
+          if (err) {
+            error('Unable to authenticate to ellmak database:', err)
+          } else if (result === true) {
+            trace('Authenticated to ellmak database')
+            store.dispatch(connected(db))
+          } else {
+            error('Unable to authenticate to ellmak database')
+          }
+          callback()
+        })
         callback()
       })
     } else {

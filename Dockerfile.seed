@@ -8,4 +8,4 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 
 COPY config/db db
 
-CMD dockerize -wait tcp://ellmakdb:27017 mongo --host ellmakdb --eval "db.dropDatabase()" ellmak && mongorestore -h ellmakdb -d ellmak db/ellmak
+CMD dockerize -wait tcp://ellmakdb:27017 mongo --host ellmakdb -u "ellmak" -p $ELLMAK_PASSWORD --authenticationDatabase "ellmak" --eval "db.dropDatabase()" ellmak && mongorestore -h ellmakdb -u "ellmak" -p $ELLMAK_PASSWORD --authenticationDatabase "ellmak" -d ellmak db/ellmak
