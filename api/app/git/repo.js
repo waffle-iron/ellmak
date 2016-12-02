@@ -1,14 +1,12 @@
 import Git from 'nodegit'
 import path from 'path'
-import { error, info } from '../utils/logger'
+import { trace } from '../utils/logger'
 import _ from 'lodash'
+import spitStats from './tp'
 
 const cloneOptions = {
   fetchOpts: {
     callbacks: {
-      certificateCheck: () => {
-        return 1
-      },
       credentials: (url, username, allowedTypes, payload) => {
         return Git.Cred.sshKeyNew(
           username,
@@ -16,6 +14,10 @@ const cloneOptions = {
           '/data/ssh/id_rsa',
           ''
         )
+      },
+      transferProgress: {
+        throttle: 0,
+        callback: spitStats
       }
     }
   }
@@ -25,48 +27,30 @@ const open = (repoDoc) => {
   return new Promise((resolve, reject) => {
     const repoPath = path.join(process.env.ELLMAK_REPO_PATH, repoDoc.shortName)
 
-    Git.Repository.open(repoPath).then((repo) => {
-      checkRemotes(repoDoc, repo).then((repo) => {
-        resolve(repo)
-      }).catch((err) => {
-        error(err)
-        reject('Unable to verify remotes')
-      })
-    }).catch((err) => {
-      error(err)
-      Git.Clone(repoDoc.remotes['origin'], repoPath, cloneOptions).then((repo) => {
-        checkRemotes(repoDoc, repo).then((repo) => {
-          resolve(repo)
-        }).catch((err) => {
-          error(err)
-          reject('Unable to verify remotes')
-        })
-      }).catch((err) => {
-        error(err)
-        reject('Unable to clone repository')
-      })
+    Git.Repository.open(repoPath).then(repo => {
+      checkRemotes(repoDoc, repo).then(repo => resolve(repo)).catch(err => reject(err))
+    }).catch(err => {
+      trace(err)
+      trace('Trying Clone')
+      Git.Clone(repoDoc.remotes['origin'], repoPath, cloneOptions).then(repo => {
+        checkRemotes(repoDoc, repo).then(repo => resolve(repo)).catch(err => reject(err))
+      }).catch(err => reject(err))
     })
   })
 }
 
 const checkRemotes = (repoDoc, repo) => {
   return new Promise((resolve, reject) => {
-    repo.getRemotes().then((remotes) => {
+    repo.getRemotes().then(remotes => {
       const diff = _.difference(Object.keys(repoDoc.remotes), Object.values(remotes))
-      diff.map((name) => {
-        const url = repoDoc.remotes[name]
-        Git.Remote.create(repo, name, url).then((remote) => {
-          info('Remote %s at %s added', name, url)
-        }).catch((err) => {
-          error(err)
-          reject('Unable to create remote')
+      const createsPromises = diff.map(name => {
+        return new Promise((resolve, reject) => {
+          const url = repoDoc.remotes[name]
+          Git.Remote.create(repo, name, url).then(remote => resolve()).catch(err => reject(err))
         })
       })
-      resolve(repo)
-    }).catch((err) => {
-      error(err)
-      reject('Unable to lookup remotes')
-    })
+      Promise.all(createsPromises).then(() => resolve(repo)).catch(err => reject(err))
+    }).catch(err => reject(err))
   })
 }
 

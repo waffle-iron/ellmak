@@ -28,10 +28,13 @@ const messageHandler = (ws, message, flags) => {
                     repo.getReferences(3).then(refsArr => {
                       refsArr.forEach(ref => {
                         repo.getReferenceCommit(ref).then(commit => {
-                          console.log(`${ref}: ${commit} at ${commit.date()}`)
-                        })
+                          info(`${ref}: ${commit} at ${commit.timeMs()}`)
+                          commit.getParents(10).then(commitArr => {
+                            commitArr.forEach(v => info(`Parent: ${v} of ${commit}`))
+                          }).catch(err => error(err))
+                        }).catch(err => error(err))
                       })
-                    })
+                    }).catch(err => error(err))
                   }).catch(err => error(err))
                 })
               })

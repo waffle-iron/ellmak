@@ -1,5 +1,5 @@
 import Git from 'nodegit'
-import { info } from '../utils/logger'
+import spitStats from './tp'
 
 const fetchOpts = {
   callbacks: {
@@ -12,11 +12,8 @@ const fetchOpts = {
       )
     },
     transferProgress: {
-      throttle: 0,
-      callback: (stats) => {
-        const proto = Object.getPrototypeOf(stats)
-        return Object.keys(proto).map(k => console.log(`${k}: ${stats[k]()}`))
-      }
+      throttle: 50,
+      callback: spitStats
     }
   }
 }
