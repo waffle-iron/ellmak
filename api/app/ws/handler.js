@@ -1,22 +1,11 @@
 import jwt from 'jsonwebtoken'
-import Git from 'nodegit'
 import store from '../redux/store'
 import { wssActions } from '../redux/ws'
 import { findByUsername } from '../db/users'
 import { findByUserId } from '../db/repos'
 import { error, info } from '../utils/logger'
 import { open } from '../git/repo'
-
-function statusToText (status) {
-  var words = []
-  if (status.isNew()) { words.push('NEW') }
-  if (status.isModified()) { words.push('MODIFIED') }
-  if (status.isTypechange()) { words.push('TYPECHANGE') }
-  if (status.isRenamed()) { words.push('RENAMED') }
-  if (status.isIgnored()) { words.push('IGNORED') }
-
-  return words.join(' ')
-}
+import { fetchAll } from '../git/remote'
 
 const messageHandler = (ws, message, flags) => {
   return new Promise((resolve, reject) => {
@@ -35,32 +24,15 @@ const messageHandler = (ws, message, flags) => {
               repoDocs.forEach((repoDoc) => {
                 open(repoDoc).then((repo) => {
                   info('Opened %s', repoDoc.shortName)
-                  const fetchOpts = new Git.FetchOptions()
-                  const callbacks = new Git.RemoteCallbacks()
-                  Git.Remote.initCallbacks(callbacks, 1)
-                  fetchOpts.callbacks = callbacks
-                  callbacks.credentials = (url, username) => {
-                    return Git.Cred.sshKeyNew(
-                      username,
-                      '/data/ssh/id_rsa.pub',
-                      '/data/ssh/id_rsa',
-                      ''
-                    )
-                  }
-                  callbacks.transferProgress = (info) => {
-                    return console.log(info)
-                  }
-
-                  repo.fetchAll(fetchOpts).then(() => {
-                    info('Fetched all')
-                    repo.getStatus().then((statuses) => {
-                      statuses.forEach(function (file) {
-                        console.log(file.path() + ' ' + statusToText(file))
+                  fetchAll(repo).then(() => {
+                    repo.getReferences(3).then(refsArr => {
+                      refsArr.forEach(ref => {
+                        repo.getReferenceCommit(ref).then(commit => {
+                          console.log(`${ref}: ${commit} at ${commit.date()}`)
+                        })
                       })
                     })
-                  }).catch((err) => {
-                    error(err)
-                  })
+                  }).catch(err => error(err))
                 })
               })
               resolve(JSON.stringify('activated repos'))
