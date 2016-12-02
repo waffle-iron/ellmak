@@ -5,7 +5,7 @@ import logger from 'morgan'
 import cookieParser from 'cookie-parser'
 import bodyParser from 'body-parser'
 import routes from './routes/index'
-import login from './routes/login'
+import auth from './routes/auth'
 import clone from './routes/clone'
 import repo from './routes/repo'
 import { banner, error } from './utils/logger'
@@ -30,7 +30,7 @@ app.use(cors(corsOptions))
 app.options('*', cors())
 
 app.use(jwt({secret: process.env.ELLMAK_JWT_SECRET}).unless({
-  path: ['/api/v1', '/api/v1/login']
+  path: ['/api/v1', '/api/v1/auth']
 }))
 
 app.use(logger('combined'))
@@ -41,7 +41,7 @@ app.use(cookieParser())
 app.use('/api/v1', router)
 
 router.use('/', routes)
-router.use('/login', login)
+router.use('/auth', auth)
 router.use('/clone', clone)
 router.use('/repo', repo)
 

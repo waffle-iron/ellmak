@@ -10,6 +10,7 @@ services:
     env_file: ./.ellmak/ellmak.env
     volumes:
       - ellmak_repo_data:/data/repo
+      - ./.ellmak/ssh:/data/ssh
     links:
       - ellmakdb
   nginx:

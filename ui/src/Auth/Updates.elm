@@ -12,7 +12,7 @@ import Time
 
 authUrl : String
 authUrl =
-    "/login"
+    "/auth"
 
 
 userEncoder : Authentication -> Json.Encode.Value

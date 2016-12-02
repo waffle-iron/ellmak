@@ -108,8 +108,8 @@ repoSuffix =
     "/repo"
 
 
-repoEncoder : LeftPanel -> Encode.Value
-repoEncoder model =
+repoEncoder : LeftPanel -> String -> Encode.Value
+repoEncoder model username =
     let
         additionalRemotesValues =
             Dict.values model.addRemotesDict
@@ -125,6 +125,7 @@ repoEncoder model =
             , ( "branches", Encode.list (List.map Encode.string model.branches) )
             , ( "frequency", Encode.string model.frequency )
             , ( "shortName", Encode.string model.shortName )
+            , ( "username", Encode.string username )
             ]
 
 
@@ -150,7 +151,7 @@ addRepo model leftPanelModel =
                 { method = "POST"
                 , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authentication.token)) ]
                 , url = (model.baseUrl ++ repoSuffix)
-                , body = Http.jsonBody <| repoEncoder leftPanelModel
+                , body = Http.jsonBody <| repoEncoder leftPanelModel model.authentication.username
                 , expect = Http.expectJson repoDecoder
                 , timeout = Nothing
                 , withCredentials = True
@@ -166,7 +167,7 @@ getRepos model =
             Http.request
                 { method = "GET"
                 , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authentication.token)) ]
-                , url = (model.baseUrl ++ repoSuffix)
+                , url = (model.baseUrl ++ repoSuffix ++ "?username=" ++ model.authentication.username)
                 , body = Http.emptyBody
                 , expect = Http.expectJson reposDecoder
                 , timeout = Nothing
@@ -178,7 +179,15 @@ getRepos model =
 
 refreshDecoder : Decoder String
 refreshDecoder =
-    field "ok" Decode.string
+    field "id_token" Decode.string
+
+
+refreshEncoder : BaseModel -> Encode.Value
+refreshEncoder model =
+    Encode.object
+        [ ( "token", Encode.string model.authentication.token )
+        , ( "username", Encode.string model.authentication.username )
+        ]
 
 
 refreshToken : BaseModel -> Cmd BaseMsg
@@ -188,8 +197,8 @@ refreshToken model =
             Http.request
                 { method = "PUT"
                 , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authentication.token)) ]
-                , url = (model.baseUrl ++ "/login")
-                , body = Http.emptyBody
+                , url = (model.baseUrl ++ "/auth")
+                , body = Http.jsonBody <| refreshEncoder model
                 , expect = Http.expectJson refreshDecoder
                 , timeout = Nothing
                 , withCredentials = True
@@ -283,8 +292,18 @@ update msg model =
 
         RefreshTokenResult result ->
             case result of
-                Ok success ->
-                    ( model |> Debug.log success, Cmd.none )
+                Ok newToken ->
+                    let
+                        { authentication } =
+                            model
+
+                        newAuthentication =
+                            { authentication | token = newToken }
+
+                        newModel =
+                            { model | authentication = newAuthentication }
+                    in
+                        ( newModel, Cmd.none )
 
                 Err err ->
                     ( model, Cmd.none )
@@ -310,7 +329,7 @@ update msg model =
                 ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map authTranslator authCmd ] )
 
         AuthSuccess ->
-            ( model, Cmd.batch [ getRepos model, sendMessage "authenticated" ] )
+            ( model |> Debug.log "AuthSuccess", Cmd.batch [ getRepos model, sendMessage "authenticated" ] )
 
         AuthError error ->
             case error of
@@ -397,15 +416,13 @@ update msg model =
             ( model, Cmd.none )
 
         NewMessage message ->
-            ( model |> Debug.log message, Cmd.none )
+            ( model, Cmd.none )
 
         SendWsMessage message ->
-            ( model, WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model message )
+            ( model |> Debug.log message, WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model message )
 
         Tick newTime ->
-            ( model
-            , Cmd.batch
-                [ WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model "heartbeat"
-                , refreshToken model
-                ]
-            )
+            ( model, WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model "heartbeat" )
+
+        FiveMinute newTime ->
+            ( model, refreshToken model )

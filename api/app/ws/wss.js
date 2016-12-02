@@ -13,9 +13,8 @@ const startWss = (server) => {
     trace('clients:', wss.clients.length)
 
     ws.on('message', (data, flags) => {
-      new Promise((resolve, reject) => {
-        messageHandler(ws, data, flags, resolve, reject)
-      }).then((result) => {
+      trace('message received')
+      messageHandler(ws, data, flags).then((result) => {
         ws.send(result)
       }).catch((err) => {
         ws.send(JSON.stringify({err: err}))

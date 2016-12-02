@@ -1,42 +1,31 @@
 // ----------------------------------------------------------------------
 // Constants
 // ----------------------------------------------------------------------
-export const ELLMAK_DB_CONNECTED = 'ellmak/db/connected'
-export const ELLMAK_DB_DISCONNECTED = 'ellmak/db/disconnect'
+export const ELLMAK_REPOS_ACTIVATE = 'ellmak/repos/activate'
 
 // ----------------------------------------------------------------------
 // Actions
 // ----------------------------------------------------------------------
-export function connected (conn) {
+export function activate (repos) {
   return {
-    type: ELLMAK_DB_CONNECTED,
-    conn: conn
-  }
-}
-
-export function disonnected () {
-  return {
-    type: ELLMAK_DB_DISCONNECTED
+    type: ELLMAK_REPOS_ACTIVATE,
+    repos: repos
   }
 }
 
 // ----------------------------------------------------------------------
 // Exported Actions, useful for use with bindActionCreators
 // ----------------------------------------------------------------------
-export const databaseActions = {
-  connected,
-  disonnected
+export const wssActions = {
+  activate
 }
 
 // ----------------------------------------------------------------------
 // Action Handlers
 // ----------------------------------------------------------------------
 const ACTION_HANDLERS = {
-  [ELLMAK_DB_CONNECTED]: (state, action) => {
-    return { ...state, conn: action.conn }
-  },
-  [ELLMAK_DB_DISCONNECTED]: (state, action) => {
-    return initialState
+  [ELLMAK_REPOS_ACTIVATE]: (state, action) => {
+    return { ...state, repos: action.repos }
   }
 }
 
@@ -44,7 +33,7 @@ const ACTION_HANDLERS = {
 // Initial Database State
 // ----------------------------------------------------------------------
 const initialState = {
-  conn: {}
+  repos: {}
 }
 
 // ----------------------------------------------------------------------

@@ -42,3 +42,4 @@ type BaseMsg
       -- WebSocket Listener
     | NewMessage String
     | Tick Time
+    | FiveMinute Time
