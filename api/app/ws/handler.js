@@ -7,6 +7,17 @@ import { findByUserId } from '../db/repos'
 import { error, info } from '../utils/logger'
 import { open } from '../git/repo'
 
+function statusToText (status) {
+  var words = []
+  if (status.isNew()) { words.push('NEW') }
+  if (status.isModified()) { words.push('MODIFIED') }
+  if (status.isTypechange()) { words.push('TYPECHANGE') }
+  if (status.isRenamed()) { words.push('RENAMED') }
+  if (status.isIgnored()) { words.push('IGNORED') }
+
+  return words.join(' ')
+}
+
 const messageHandler = (ws, message, flags) => {
   return new Promise((resolve, reject) => {
     try {
@@ -26,6 +37,7 @@ const messageHandler = (ws, message, flags) => {
                   info('Opened %s', repoDoc.shortName)
                   const fetchOpts = new Git.FetchOptions()
                   const callbacks = new Git.RemoteCallbacks()
+                  Git.Remote.initCallbacks(callbacks, 1)
                   fetchOpts.callbacks = callbacks
                   callbacks.credentials = (url, username) => {
                     return Git.Cred.sshKeyNew(
@@ -38,10 +50,13 @@ const messageHandler = (ws, message, flags) => {
                   callbacks.transferProgress = (info) => {
                     return console.log(info)
                   }
+
                   repo.fetchAll(fetchOpts).then(() => {
                     info('Fetched all')
                     repo.getStatus().then((statuses) => {
-                      info('Statuses', statuses)
+                      statuses.forEach(function (file) {
+                        console.log(file.path() + ' ' + statusToText(file))
+                      })
                     })
                   }).catch((err) => {
                     error(err)
