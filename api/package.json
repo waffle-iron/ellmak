@@ -59,6 +59,6 @@
     "eslint-plugin-standard": "^2.0.1",
     "webpack": "^1.13.3",
     "webpack-node-externals": "^1.5.4",
-    "yargs": "^6.4.0"
+    "yargs": "^6.5.0"
   }
 }
