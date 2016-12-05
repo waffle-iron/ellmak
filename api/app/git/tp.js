@@ -1,4 +1,4 @@
-import { info } from '../utils/logger'
+import { trace } from '../utils/logger'
 
 const pad = (pad, str, padLeft) => {
   if (typeof str === 'undefined') {
@@ -33,7 +33,7 @@ const spitStats = (stats) => {
   }
   const idp = pad(spaces, idpv, true)
 
-  return info(`Received: ${rop}% | Indexed: ${iop}% | Deltas: ${idp}% | Received: ${kb} KB`)
+  return trace(`Received: ${rop}% | Indexed: ${iop}% | Deltas: ${idp}% | Received: ${kb} KB`)
 }
 
 export default spitStats

@@ -26,13 +26,11 @@ const cloneOptions = {
 const open = (repoDoc) => {
   return new Promise((resolve, reject) => {
     const repoPath = path.join(process.env.ELLMAK_REPO_PATH, repoDoc.shortName)
-
     Git.Repository.open(repoPath).then(repo => {
       checkRemotes(repoDoc, repo).then(repo => resolve(repo)).catch(err => reject(err))
     }).catch(err => {
       trace(err)
-      trace('Trying Clone')
-      Git.Clone(repoDoc.remotes['origin'], repoPath, cloneOptions).then(repo => {
+      Git.Clone(repoDoc.remotes['origin'].url, repoPath, cloneOptions).then(repo => {
         checkRemotes(repoDoc, repo).then(repo => resolve(repo)).catch(err => reject(err))
       }).catch(err => reject(err))
     })
@@ -45,8 +43,8 @@ const checkRemotes = (repoDoc, repo) => {
       const diff = _.difference(Object.keys(repoDoc.remotes), Object.values(remotes))
       const createsPromises = diff.map(name => {
         return new Promise((resolve, reject) => {
-          const url = repoDoc.remotes[name]
-          Git.Remote.create(repo, name, url).then(remote => resolve()).catch(err => reject(err))
+          const remoteObj = repoDoc.remotes[name]
+          Git.Remote.create(repo, name, remoteObj.url).then(remote => resolve()).catch(err => reject(err))
         })
       })
       Promise.all(createsPromises).then(() => resolve(repo)).catch(err => reject(err))

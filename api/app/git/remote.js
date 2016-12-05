@@ -24,7 +24,7 @@ const fetchAll = (repo) => {
       const remotesPromises = remoteNames.map(v => repo.getRemote(v))
       Promise.all(remotesPromises).then(remotes => {
         const fetchPromises = remotes.map(v => v.fetch(null, fetchOpts, ''))
-        Promise.all(fetchPromises).then(() => resolve()).catch(err => reject(err))
+        Promise.all(fetchPromises).then(() => resolve(repo)).catch(err => reject(err))
       }).catch(err => reject(err))
     }).catch(err => reject(err))
   })

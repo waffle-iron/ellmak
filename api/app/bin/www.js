@@ -1,11 +1,11 @@
 import app from '../app'
 import { createServer } from 'http'
-import { error, info, trace } from '../utils/logger'
+import { error, info } from '../utils/logger'
 import { connect } from '../db/db'
 import { startWss } from '../ws/wss'
 
 connect().then(() => {
-  trace('Connected to MongoDB!')
+  info('Connected to mongo')
 
   // Setup port
   const port = ((val) => {

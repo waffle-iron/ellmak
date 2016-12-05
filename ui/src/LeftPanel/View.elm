@@ -73,7 +73,7 @@ originFormGroup =
                     [ input [ type_ "text", class "form-control", id "origin-name", readonly True, placeholder "origin" ] []
                     ]
                 , div [ class "col-lg-8 col-md-8 col-sm-8 col-xs-8" ]
-                    [ input [ type_ "text", class "form-control", id "origin-url", placeholder "Origin URL", onInput (ForSelf << SetOriginRemote) ] []
+                    [ input [ type_ "text", class "form-control", id "origin-url", placeholder "https://github.com/CraZySacX/ellmak.git", onInput (ForSelf << SetOriginRemote) ] []
                     ]
                 ]
             ]
@@ -103,7 +103,7 @@ additionalRemote idx =
                             [ type_ "text"
                             , class "form-control"
                             , id idStr
-                            , placeholder "gh"
+                            , placeholder "github"
                             , onInput (ForSelf << SetAdditionalRepoKey idx)
                             , onBlurb (ForSelf << NewRemoteRow)
                             ]
@@ -114,7 +114,7 @@ additionalRemote idx =
                             [ type_ "text"
                             , class "form-control"
                             , id urlStr
-                            , placeholder ""
+                            , placeholder "git@github.com:CraZySacX/ellmak.git"
                             , onInput (ForSelf << SetAdditionalRepoValue idx)
                             ]
                             []
@@ -122,6 +122,11 @@ additionalRemote idx =
                     ]
                 ]
             ]
+
+
+refsExample : String
+refsExample =
+    "origin/master\nrefs/heads/github/master\nrefs/heads/github/cool-feature"
 
 
 view : LeftPanel -> Html Msg
@@ -159,7 +164,7 @@ view model =
                         ]
                     , originFormGroup
                     , div [] (List.map additionalRemote (List.range 0 model.remotesCount))
-                    , addRepoFormGroupTextArea 2 "repo-refs" "Branches To Monitor" "origin/master" (ForSelf << SetBranches)
+                    , addRepoFormGroupTextArea 2 "repo-refs" "Refs To Monitor" refsExample (ForSelf << SetBranches)
                     , helpTextWell "repo-refs" "Branches To Monitor Help Text"
                     , addRepoFormGroupText 3 "frequency" "Frequency" "15m" (ForSelf << SetFrequency)
                     , helpTextWell "frequency" "Frequency Help Text"

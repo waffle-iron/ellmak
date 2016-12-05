@@ -21,6 +21,8 @@ import Repo.Model exposing (Repository)
 import RightPanel.Updates exposing (update)
 import Routing.Router exposing (..)
 import Task exposing (perform)
+import Time exposing (inMilliseconds, Time)
+import Tuple exposing (first, second)
 import Uuid
 import WebSocket
 
@@ -108,6 +110,14 @@ repoSuffix =
     "/repo"
 
 
+remoteEncoder : ( String, Time ) -> Encode.Value
+remoteEncoder repoTuple =
+    Encode.object
+        [ ( "url", Encode.string (first repoTuple) )
+        , ( "lastUpdated", Encode.float (inMilliseconds <| (second repoTuple)) )
+        ]
+
+
 repoEncoder : LeftPanel -> String -> Encode.Value
 repoEncoder model username =
     let
@@ -121,7 +131,7 @@ repoEncoder model username =
             Dict.union model.remotesDict remotesToAppend
     in
         Encode.object
-            [ ( "remotes", Encode.object <| Dict.toList <| Dict.map (\k v -> Encode.string v) allRemotes )
+            [ ( "remotes", Encode.object <| Dict.toList <| Dict.map (\k v -> remoteEncoder v) allRemotes )
             , ( "branches", Encode.list (List.map Encode.string model.branches) )
             , ( "frequency", Encode.string model.frequency )
             , ( "shortName", Encode.string model.shortName )
@@ -129,10 +139,17 @@ repoEncoder model username =
             ]
 
 
+remoteDecoder : Decoder ( String, Time )
+remoteDecoder =
+    map2 (,)
+        (field "url" Decode.string)
+        (field "lastUpdated" Decode.float)
+
+
 repoDecoder : Decoder Repository
 repoDecoder =
     map4 Repository
-        (at [ "remotes" ] (Decode.dict Decode.string))
+        (at [ "remotes" ] (Decode.dict remoteDecoder))
         (at [ "branches" ] (Decode.list Decode.string))
         (at [ "frequency" ] Decode.string)
         (at [ "shortName" ] Decode.string)
@@ -267,7 +284,7 @@ update msg model =
                         ( newModel, newUrl "#" )
 
                 Err err ->
-                    showAlert model "error" (toString err)
+                    showAlert model "error" (Debug.log "Error" (toString err))
 
         GetRepoResult result ->
             case result of
@@ -329,7 +346,7 @@ update msg model =
                 ( newModel, Cmd.batch [ storeFlags newModel, Cmd.map authTranslator authCmd ] )
 
         AuthSuccess ->
-            ( model |> Debug.log "AuthSuccess", Cmd.batch [ getRepos model, sendMessage "authenticated" ] )
+            ( model, Cmd.batch [ getRepos model, sendMessage "authenticated" ] )
 
         AuthError error ->
             case error of
@@ -416,13 +433,17 @@ update msg model =
             ( model, Cmd.none )
 
         NewMessage message ->
-            ( model, Cmd.none )
+            let
+                blah =
+                    Debug.log "Message" (decodeString Decode.string message)
+            in
+                ( model, Cmd.none )
 
         SendWsMessage message ->
-            ( model |> Debug.log message, WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model message )
+            ( model, WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model message )
 
-        Tick newTime ->
+        Heartbeat newTime ->
             ( model, WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model "heartbeat" )
 
-        FiveMinute newTime ->
+        RefreshRequest newTime ->
             ( model, refreshToken model )

@@ -41,5 +41,5 @@ type BaseMsg
     | RefreshTokenResult (Result Http.Error String)
       -- WebSocket Listener
     | NewMessage String
-    | Tick Time
-    | FiveMinute Time
+    | Heartbeat Time
+    | RefreshRequest Time

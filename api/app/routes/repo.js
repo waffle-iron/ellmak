@@ -1,5 +1,5 @@
 import express from 'express'
-import { error, trace } from '../utils/logger'
+import { error } from '../utils/logger'
 import { findIdByUsername } from '../db/users'
 import { findByUserId, upsertByShortName } from '../db/repos'
 
@@ -10,7 +10,6 @@ router.get('/', (req, res, next) => {
 
   findIdByUsername(username).then((id) => {
     findByUserId(id).then((docs) => {
-      trace('Found repository information for user')
       return res.status(200).send(docs)
     }).catch((err) => {
       error(err)
@@ -27,7 +26,6 @@ router.post('/', (req, res, next) => {
 
   findIdByUsername(username).then((id) => {
     upsertByShortName(id, req.body).then((doc) => {
-      trace('Successfully upserted repository information')
       return res.status(200).send(doc)
     }).catch((err) => {
       error(err)

@@ -6,6 +6,33 @@ import Time exposing (Time, minute)
 import WebSocket
 
 
+heartbeat : Sub BaseMsg
+heartbeat =
+    Time.every minute Heartbeat
+
+
+refreshRequest : Sub BaseMsg
+refreshRequest =
+    Time.every (5 * minute) RefreshRequest
+
+
+webSocketListener : BaseModel -> Sub BaseMsg
+webSocketListener model =
+    WebSocket.listen model.wsBaseUrl NewMessage
+
+
 subscriptions : BaseModel -> Sub BaseMsg
 subscriptions model =
-    Sub.batch [ Time.every minute Tick, Time.every (5 * minute) FiveMinute, WebSocket.listen model.wsBaseUrl NewMessage ]
+    let
+        baseSubs =
+            [ heartbeat, webSocketListener model ]
+
+        subs =
+            case model.authentication.authenticated of
+                True ->
+                    refreshRequest :: baseSubs
+
+                False ->
+                    baseSubs
+    in
+        Sub.batch subs
