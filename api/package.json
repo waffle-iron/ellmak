@@ -38,6 +38,8 @@
     "express-jwt": "^5.1.0",
     "jsonwebtoken": "^7.1.9",
     "lodash": "^4.17.2",
+    "moment": "^2.17.1",
+    "moment-timezone": "^0.5.10",
     "mongodb": "^2.2.12",
     "morgan": "~1.7.0",
     "nodegit": "^0.16.0",
