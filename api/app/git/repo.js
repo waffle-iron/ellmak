@@ -30,8 +30,10 @@ const open = (repoDoc) => {
       checkRemotes(repoDoc, repo).then(repo => resolve(repo)).catch(err => reject(err))
     }).catch(err => {
       trace(err)
-      Git.Clone(repoDoc.remotes['origin'].url, repoPath, cloneOptions).then(repo => {
-        checkRemotes(repoDoc, repo).then(repo => resolve(repo)).catch(err => reject(err))
+      Git.Clone(repoDoc.remotes['origin'], repoPath, cloneOptions).then(repo => {
+        setTimeout((repoDoc, repo) => {
+          checkRemotes(repoDoc, repo).then(repo => resolve(repo)).catch(err => reject(err))
+        }, 2000, repoDoc, repo)
       }).catch(err => reject(err))
     })
   })
@@ -43,8 +45,7 @@ const checkRemotes = (repoDoc, repo) => {
       const diff = _.difference(Object.keys(repoDoc.remotes), Object.values(remotes))
       const createsPromises = diff.map(name => {
         return new Promise((resolve, reject) => {
-          const remoteObj = repoDoc.remotes[name]
-          Git.Remote.create(repo, name, remoteObj.url).then(remote => resolve()).catch(err => reject(err))
+          Git.Remote.create(repo, name, repoDoc.remotes[name]).then(remote => resolve()).catch(err => reject(err))
         })
       })
       Promise.all(createsPromises).then(() => resolve(repo)).catch(err => reject(err))

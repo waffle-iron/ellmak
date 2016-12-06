@@ -20,6 +20,9 @@ toFlags model =
 
         { expiry } =
             payload
+
+        blah =
+            Debug.log ("Storing expiry " ++ (Basics.toString expiry)) ""
     in
         Flags
             (Conversions.Environment.toString env)

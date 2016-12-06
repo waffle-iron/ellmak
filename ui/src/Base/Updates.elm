@@ -2,7 +2,7 @@ module Base.Updates exposing (..)
 
 import Auth.Messages exposing (..)
 import Auth.Model exposing (AuthError(..))
-import Auth.Updates exposing (authenticated)
+import Auth.Updates exposing (authenticated, fromDecodeResult, tokenPayloadDecoder)
 import Base.Messages exposing (..)
 import Base.Model exposing (..)
 import Conversions.Model exposing (toFlags)
@@ -10,7 +10,7 @@ import Dict exposing (toList)
 import Http exposing (..)
 import Json.Decode as Decode exposing (..)
 import Json.Encode as Encode exposing (..)
-import Jwt exposing (JwtError(TokenProcessingError, TokenDecodeError))
+import Jwt exposing (decodeToken, JwtError(TokenProcessingError, TokenDecodeError))
 import LeftPanel.Messages exposing (Translator, translator)
 import LeftPanel.Model exposing (LeftPanel)
 import LeftPanel.Updates exposing (update)
@@ -192,36 +192,6 @@ getRepos model =
         Http.send GetRepoResult request
 
 
-refreshDecoder : Decoder String
-refreshDecoder =
-    field "id_token" Decode.string
-
-
-refreshEncoder : BaseModel -> Encode.Value
-refreshEncoder model =
-    Encode.object
-        [ ( "token", Encode.string model.authentication.token )
-        , ( "username", Encode.string model.authentication.username )
-        ]
-
-
-refreshToken : BaseModel -> Cmd BaseMsg
-refreshToken model =
-    let
-        request =
-            Http.request
-                { method = "PUT"
-                , headers = [ (Http.header "Authorization" ("Bearer " ++ model.authentication.token)) ]
-                , url = (model.baseUrl ++ "/auth")
-                , body = Http.jsonBody <| refreshEncoder model
-                , expect = Http.expectJson refreshDecoder
-                , timeout = Nothing
-                , withCredentials = True
-                }
-    in
-        Http.send RefreshTokenResult request
-
-
 sendMessage : String -> Cmd BaseMsg
 sendMessage message =
     Task.perform SendWsMessage <| Task.succeed message
@@ -279,7 +249,7 @@ update msg model =
                         newModel =
                             { model | rightPanel = newRightPanel, leftPanel = newLeftPanel }
                     in
-                        ( newModel, newUrl "#" )
+                        ( newModel, Cmd.batch [ storeFlags newModel, newUrl "#" ] )
 
                 Err err ->
                     showAlert model "error" (Debug.log "Error" (toString err))
@@ -300,28 +270,10 @@ update msg model =
                         newModel =
                             { model | rightPanel = newRightPanel }
                     in
-                        ( newModel, Cmd.none )
+                        ( newModel, storeFlags newModel )
 
                 Err err ->
                     showAlert model "error" (toString err)
-
-        RefreshTokenResult result ->
-            case result of
-                Ok newToken ->
-                    let
-                        { authentication } =
-                            model
-
-                        newAuthentication =
-                            { authentication | token = newToken }
-
-                        newModel =
-                            { model | authentication = newAuthentication }
-                    in
-                        ( newModel, Cmd.none )
-
-                Err err ->
-                    ( model, Cmd.none )
 
         RightPanelMsg subMsg ->
             let
@@ -442,6 +394,3 @@ update msg model =
 
         Heartbeat newTime ->
             ( model, WebSocket.send model.wsBaseUrl <| encode 0 <| messageEncoder model "heartbeat" )
-
-        RefreshRequest newTime ->
-            ( model, refreshToken model )

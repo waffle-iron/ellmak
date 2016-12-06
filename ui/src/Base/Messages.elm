@@ -1,6 +1,6 @@
 module Base.Messages exposing (..)
 
-import Auth.Model exposing (AuthError)
+import Auth.Model exposing (AuthError, JwtPayload)
 import Auth.Messages exposing (InternalMsg)
 import Base.Model exposing (AlertifyConfig)
 import Http
@@ -38,8 +38,6 @@ type BaseMsg
     | CloneRequest (Result Http.Error String)
     | PostRepoResult (Result Http.Error Repository)
     | GetRepoResult (Result Http.Error (List Repository))
-    | RefreshTokenResult (Result Http.Error String)
       -- WebSocket Listener
     | NewMessage String
     | Heartbeat Time
-    | RefreshRequest Time

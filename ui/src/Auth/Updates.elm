@@ -28,14 +28,14 @@ tokenDecoder =
     field "id_token" Json.Decode.string
 
 
-authUser : Authentication -> String -> String -> Cmd Msg
-authUser model baseUrl apiUrl =
+authUser : Authentication -> String -> Cmd Msg
+authUser model baseUrl =
     let
         request =
             Http.request
                 { method = "POST"
                 , headers = []
-                , url = (baseUrl ++ apiUrl)
+                , url = (baseUrl ++ authUrl)
                 , body = Http.jsonBody <| userEncoder model
                 , expect = Http.expectJson tokenDecoder
                 , timeout = Nothing
@@ -78,9 +78,12 @@ checkExpiry : Authentication -> Float -> Bool
 checkExpiry model now =
     let
         seconds =
-            now / 1000
+            floor (now / 1000)
+
+        check =
+            Debug.log ("Seconds: " ++ (toString seconds) ++ ", Expiry: " ++ (toString model.payload.expiry)) (toFloat seconds < model.payload.expiry)
     in
-        seconds < model.payload.expiry
+        check
 
 
 logout : Authentication -> ( Authentication, Cmd Msg )
@@ -96,6 +99,31 @@ generateParentMsg externalMsg =
 authError : Authentication -> AuthError -> ( Authentication, Cmd Msg )
 authError auth error =
     ( { auth | username = "", password = "", token = "" }, generateParentMsg (AuthenticationError error) )
+
+
+refreshEncoder : Authentication -> Json.Encode.Value
+refreshEncoder model =
+    Json.Encode.object
+        [ ( "token", Json.Encode.string model.token )
+        , ( "username", Json.Encode.string model.username )
+        ]
+
+
+refreshToken : Authentication -> String -> Cmd Msg
+refreshToken model baseUrl =
+    let
+        request =
+            Http.request
+                { method = "PUT"
+                , headers = [ (Http.header "Authorization" ("Bearer " ++ model.token)) ]
+                , url = (baseUrl ++ authUrl)
+                , body = Http.jsonBody <| refreshEncoder model
+                , expect = Http.expectJson tokenDecoder
+                , timeout = Nothing
+                , withCredentials = True
+                }
+    in
+        Http.send (ForSelf << RefreshTokenResult) request
 
 
 update : InternalMsg -> Authentication -> String -> ( Authentication, Cmd Msg )
@@ -134,7 +162,7 @@ update message auth baseUrl =
                     authError auth (TokenError error)
 
         Login ->
-            ( auth, authUser auth baseUrl authUrl )
+            ( auth, authUser auth baseUrl )
 
         Logout ->
             ( Auth.Model.defaultAuthentication, Cmd.none )
@@ -144,3 +172,18 @@ update message auth baseUrl =
 
         SetUsername username ->
             ( { auth | username = username }, Cmd.none )
+
+        RefreshTokenResult result ->
+            case result of
+                Ok newToken ->
+                    let
+                        newAuth =
+                            { auth | token = newToken }
+                    in
+                        ( newAuth, decodeTokenCmd newToken )
+
+                Err err ->
+                    ( auth, Cmd.none )
+
+        RefreshRequest time ->
+            ( auth, refreshToken auth baseUrl )

@@ -3,6 +3,7 @@ module Auth.Messages exposing (..)
 import Auth.Model exposing (AuthError, JwtPayload)
 import Http exposing (Error)
 import Jwt exposing (JwtError)
+import Time exposing (Time)
 
 
 type InternalMsg
@@ -13,6 +14,8 @@ type InternalMsg
     | SetPassword String
     | SetUsername String
     | AuthUserResult (Result Http.Error String)
+    | RefreshTokenResult (Result Http.Error String)
+    | RefreshRequest Time
 
 
 type ExternalMsg

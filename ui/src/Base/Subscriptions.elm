@@ -1,5 +1,6 @@
 module Base.Subscriptions exposing (..)
 
+import Auth.Subscriptions exposing (subscriptions)
 import Base.Model exposing (BaseModel)
 import Base.Messages exposing (..)
 import Time exposing (Time, minute)
@@ -11,11 +12,6 @@ heartbeat =
     Time.every minute Heartbeat
 
 
-refreshRequest : Sub BaseMsg
-refreshRequest =
-    Time.every (5 * minute) RefreshRequest
-
-
 webSocketListener : BaseModel -> Sub BaseMsg
 webSocketListener model =
     WebSocket.listen model.wsBaseUrl NewMessage
@@ -23,16 +19,8 @@ webSocketListener model =
 
 subscriptions : BaseModel -> Sub BaseMsg
 subscriptions model =
-    let
-        baseSubs =
-            [ heartbeat, webSocketListener model ]
-
-        subs =
-            case model.authentication.authenticated of
-                True ->
-                    refreshRequest :: baseSubs
-
-                False ->
-                    baseSubs
-    in
-        Sub.batch subs
+    Sub.batch
+        [ heartbeat
+        , webSocketListener model
+        , Sub.map AuthMsg (Auth.Subscriptions.subscriptions model.authentication)
+        ]
