@@ -2,14 +2,13 @@ module LeftPanel.Model exposing (..)
 
 import Dict exposing (Dict, empty)
 import Routing.Router exposing (Route(Home))
-import Time exposing (Time)
 
 
 type alias LeftPanel =
     { route : Route
     , remotesCount : Int
-    , remotesDict : Dict String ( String, Time )
-    , addRemotesDict : Dict Int ( String, ( String, Time ) )
+    , remotesDict : Dict String String
+    , addRemotesDict : Dict Int ( String, String )
     , branches : List String
     , frequency : String
     , shortName : String

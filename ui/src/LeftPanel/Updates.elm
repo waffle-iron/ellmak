@@ -6,7 +6,6 @@ import LeftPanel.Model exposing (LeftPanel)
 import Navigation exposing (newUrl)
 import String exposing (split)
 import Task exposing (perform, succeed)
-import Time exposing (Time)
 
 
 generateParentMsg : ExternalMsg -> Cmd Msg
@@ -14,7 +13,7 @@ generateParentMsg externalMsg =
     Task.perform ForParent (Task.succeed externalMsg)
 
 
-insertValue : Int -> ( String, Time ) -> Dict Int ( String, ( String, Time ) ) -> Dict Int ( String, ( String, Time ) )
+insertValue : Int -> String -> Dict Int ( String, String ) -> Dict Int ( String, String )
 insertValue idx value dict =
     case (Dict.get idx dict) of
         Just ( k, _ ) ->
@@ -24,14 +23,14 @@ insertValue idx value dict =
             Dict.insert idx ( "", value ) dict
 
 
-insertKey : Int -> String -> Dict Int ( String, ( String, Time ) ) -> Dict Int ( String, ( String, Time ) )
+insertKey : Int -> String -> Dict Int ( String, String ) -> Dict Int ( String, String )
 insertKey idx key dict =
     case (Dict.get idx dict) of
         Just ( _, v ) ->
             Dict.insert idx ( key, v ) dict
 
         Nothing ->
-            Dict.insert idx ( key, ( "", 0 ) ) dict
+            Dict.insert idx ( key, "" ) dict
 
 
 update : InternalMsg -> LeftPanel -> ( LeftPanel, Cmd Msg )
@@ -63,7 +62,7 @@ update msg model =
                     model
 
                 newRemotesDict =
-                    Dict.insert "origin" ( repoUrl, 0 ) remotesDict
+                    Dict.insert "origin" repoUrl remotesDict
 
                 newModel =
                     { model | remotesDict = newRemotesDict }
@@ -89,7 +88,7 @@ update msg model =
                     model
 
                 newAddRemotesDict =
-                    insertValue idx ( value, 0 ) addRemotesDict
+                    insertValue idx value addRemotesDict
 
                 newModel =
                     { model | addRemotesDict = newAddRemotesDict }

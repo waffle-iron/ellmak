@@ -25,14 +25,14 @@ const upsertByShortName = (id, body) => {
     if (db && !_.isEmpty(db.conn)) {
       const conn = db.conn
       const reposCollection = conn.collection('repos')
-      const { remotes, branches, frequency, shortName } = body
+      const { remotes, refs, frequency, shortName } = body
 
       reposCollection.findAndModify(
-        {shortName: shortName},
+        {shortName: shortName, usersId: id},
         [['_id', 'asc']],
         {$set: {
           remotes: remotes,
-          branches: branches,
+          refs: refs,
           frequency: frequency,
           shortName: shortName,
           usersId: id

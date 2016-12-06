@@ -17,12 +17,10 @@ import LeftPanel.Updates exposing (update)
 import Navigation exposing (..)
 import Navbar.Updates exposing (..)
 import Ports.Ports exposing (alertify, storeFlags)
-import Repo.Model exposing (Repository)
+import Repo.Model exposing (Reference, Repository)
 import RightPanel.Updates exposing (update)
 import Routing.Router exposing (..)
 import Task exposing (perform)
-import Time exposing (inMilliseconds, Time)
-import Tuple exposing (first, second)
 import Uuid
 import WebSocket
 
@@ -110,11 +108,11 @@ repoSuffix =
     "/repo"
 
 
-remoteEncoder : ( String, Time ) -> Encode.Value
-remoteEncoder repoTuple =
+remoteEncoder : String -> Encode.Value
+remoteEncoder branch =
     Encode.object
-        [ ( "url", Encode.string (first repoTuple) )
-        , ( "lastUpdated", Encode.float (inMilliseconds <| (second repoTuple)) )
+        [ ( "ref", Encode.string branch )
+        , ( "lastUpdated", Encode.float 0 )
         ]
 
 
@@ -131,28 +129,28 @@ repoEncoder model username =
             Dict.union model.remotesDict remotesToAppend
     in
         Encode.object
-            [ ( "remotes", Encode.object <| Dict.toList <| Dict.map (\k v -> remoteEncoder v) allRemotes )
-            , ( "branches", Encode.list (List.map Encode.string model.branches) )
+            [ ( "remotes", Encode.object <| Dict.toList <| Dict.map (\k v -> Encode.string v) allRemotes )
+            , ( "refs", Encode.list (List.map remoteEncoder model.branches) )
             , ( "frequency", Encode.string model.frequency )
             , ( "shortName", Encode.string model.shortName )
             , ( "username", Encode.string username )
             ]
 
 
-remoteDecoder : Decoder ( String, Time )
+remoteDecoder : Decoder Reference
 remoteDecoder =
-    map2 (,)
-        (field "url" Decode.string)
+    map2 Reference
+        (field "ref" Decode.string)
         (field "lastUpdated" Decode.float)
 
 
 repoDecoder : Decoder Repository
 repoDecoder =
     map4 Repository
-        (at [ "remotes" ] (Decode.dict remoteDecoder))
-        (at [ "branches" ] (Decode.list Decode.string))
-        (at [ "frequency" ] Decode.string)
-        (at [ "shortName" ] Decode.string)
+        (field "remotes" (Decode.dict Decode.string))
+        (field "refs" (Decode.list remoteDecoder))
+        (field "frequency" Decode.string)
+        (field "shortName" Decode.string)
 
 
 reposDecoder : Decoder (List Repository)
