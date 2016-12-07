@@ -79,11 +79,8 @@ checkExpiry model now =
     let
         seconds =
             floor (now / 1000)
-
-        check =
-            Debug.log ("Seconds: " ++ (toString seconds) ++ ", Expiry: " ++ (toString model.payload.expiry)) (toFloat seconds < model.payload.expiry)
     in
-        check
+        toFloat seconds < model.payload.expiry
 
 
 logout : Authentication -> ( Authentication, Cmd Msg )

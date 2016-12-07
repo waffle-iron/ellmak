@@ -19,7 +19,7 @@ subscriptions model =
         subs =
             case model.authenticated of
                 True ->
-                    Debug.log "Authenticed Sub" (refreshRequest :: baseSubs)
+                    refreshRequest :: baseSubs
 
                 False ->
                     baseSubs
