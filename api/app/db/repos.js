@@ -50,4 +50,29 @@ const upsertByShortName = (id, body) => {
   })
 }
 
-export { findByUserId, upsertByShortName }
+const updateRefs = (id, shortName, refs) => {
+  return new Promise((resolve, reject) => {
+    const db = store.getState().db
+
+    if (db && !_.isEmpty(db.conn)) {
+      const conn = db.conn
+      const reposCollection = conn.collection('repos')
+
+      reposCollection.findAndModify(
+        {shortName: shortName, usersId: id},
+        [['_id', 'asc']],
+        {$set: { refs: refs }},
+        {upsert: true},
+        (err, result) => {
+          if (err) reject(err)
+          const doc = result.value
+          resolve(doc)
+        }
+      )
+    } else {
+      reject('Database not valid. Unable to upsert repository information')
+    }
+  })
+}
+
+export { findByUserId, updateRefs, upsertByShortName }
