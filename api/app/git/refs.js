@@ -1,29 +1,73 @@
 import _ from 'lodash'
 import moment from 'moment-timezone'
+import mailer from 'nodemailer'
 import { findByUsername } from '../db/users'
 import { findByUserId, updateRefs } from '../db/repos'
 import { open } from '../git/repo'
 import { fetchAll } from '../git/remote'
+import store from '../redux/store'
+import { intervalsActions } from '../redux/intervals'
 import { error, trace } from '../utils/logger'
 
-var intervals = {}
+const secondsRe = /^(\d+)s$/
+const minutesRe = /^(\d+)m$/
+const hoursRe = /^(\d+)h$/
+const daysRe = /^(\d+)d$/
+const transporter = mailer.createTransport('smtps://jason.g.ozias%40gmail.com:ulvjszkcsouvwjln@smtp.gmail.com')
+const mailOptions = {
+  from: '"Jason Ozias" <jason.g.ozias@gmail.com>',
+  to: 'jason.g.ozias@gmail.com',
+  subject: 'Ellmak Notification',
+  html: '<h1>Testing</h1>'
+}
+const applyFactor = (frequency, regex, factor) => {
+  const matches = frequency.match(regex)
+
+  if (matches && matches.length === 2) {
+    return (parseInt(matches[1]) * factor)
+  }
+}
+
+const toMs = (frequency) => {
+  var ms = 1800000 // 30 minutes is fallback
+
+  if (secondsRe.test(frequency)) {
+    ms = applyFactor(frequency, secondsRe, 1000)
+  } else if (minutesRe.test(frequency)) {
+    ms = applyFactor(frequency, minutesRe, 60000)
+  } else if (hoursRe.test(frequency)) {
+    ms = applyFactor(frequency, hoursRe, 3600000)
+  } else if (daysRe.test(frequency)) {
+    ms = applyFactor(frequency, daysRe, 86400000)
+  }
+
+  trace(`Frequency (${frequency}): ${ms} ms`)
+  return ms
+}
 
 const updateInterval = (username, repoDoc) => {
   const { frequency, shortName } = repoDoc
+  const { intervals } = store.getState().intervals
   const key = username + '-' + shortName
   const currVal = intervals[key]
 
   if (currVal && !_.isEmpty(currVal)) {
     if (currVal.frequency !== frequency) {
-      trace('Cancelling old inverval, setting up another due to new frequency')
+      const { add, remove } = intervalsActions
+      trace('Clearing old inverval, setting up another due to new frequency')
       clearInterval(currVal.intRef)
-      currVal.intRef = setInterval(checkRefs, 60000, username)
+      store.dispatch(remove(key))
+      store.dispatch(add(key, {
+        intRef: setInterval(checkRefs, toMs(frequency), username),
+        frequency: frequency
+      }))
     }
   } else {
-    intervals[key] = {
-      intRef: setInterval(checkRefs, 60000, username),
+    const { add } = intervalsActions
+    store.dispatch(add(key, {
+      intRef: setInterval(checkRefs, toMs(frequency), username),
       frequency: frequency
-    }
+    }))
   }
 }
 
@@ -64,7 +108,15 @@ const updateRef = (username, id, repoDoc, ref, commit) => {
       if (commitTime.isAfter(lastUpdatedTime)) {
         trace(`Updating ${refs[i].ref} with new value`)
         refs[i].lastUpdated = commit.timeMs()
-        updateRefs(id, shortName, refs).catch(err => error(err))
+        updateRefs(id, shortName, refs).then(() => {
+          transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+              error(err)
+            } else {
+              trace(`Message Sent: ${info.response}`)
+            }
+          })
+        }).catch(err => error(err))
       }
       break
     }

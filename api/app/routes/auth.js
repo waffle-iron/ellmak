@@ -1,7 +1,7 @@
 import argon2 from 'argon2'
 import express from 'express'
 import jwt from 'jsonwebtoken'
-import { error, trace } from '../utils/logger'
+import { error } from '../utils/logger'
 import { findByUsername } from '../db/users'
 
 const router = express.Router()
@@ -9,7 +9,6 @@ const router = express.Router()
 router.put('/', (req, res, next) => {
   const { username, token } = req.body
 
-  trace('refresh request')
   if (!username || username.length === 0) {
     return res.status(400).send('username required')
   }
