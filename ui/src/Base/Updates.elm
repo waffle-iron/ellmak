@@ -113,6 +113,7 @@ remoteEncoder branch =
     Encode.object
         [ ( "ref", Encode.string branch )
         , ( "lastUpdated", Encode.float 0 )
+        , ( "flagged", Encode.bool False )
         ]
 
 
