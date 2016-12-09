@@ -128,7 +128,7 @@ const checkRef = (username, repoDoc) => {
 
               flaggedRefs.forEach(ref => {
                 const lastUpdatedTime = moment(ref.lastUpdated).tz('America/New_York')
-                body += `<li>${ref.ref} last updated on ${lastUpdatedTime.format()}</li>`
+                body += `<li>${ref.ref}: commit at ${lastUpdatedTime.format()}</li>`
               })
 
               const mailOpts = Object.assign({}, defaultMailOpts, {
