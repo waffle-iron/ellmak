@@ -20,11 +20,18 @@ const fetchOpts = {
 
 const fetchAll = (repo) => {
   return new Promise((resolve, reject) => {
-    repo.getRemotes().then(remoteNames => {
+    return repo.getRemotes().then(remoteNames => {
       const remotesPromises = remoteNames.map(v => repo.getRemote(v))
       Promise.all(remotesPromises).then(remotes => {
-        const fetchPromises = remotes.map(v => v.fetch(null, fetchOpts, ''))
-        Promise.all(fetchPromises).then(() => resolve(repo)).catch(err => reject(err))
+        const fetches = remotes.map(v => {
+          return () => {
+            return v.fetch(null, fetchOpts, '')
+          }
+        })
+
+        fetches.reduce((chained, nextPromise) => {
+          return chained.then(nextPromise)
+        }, Promise.resolve()).then(() => resolve(repo)).catch(err => reject(err))
       }).catch(err => reject(err))
     }).catch(err => reject(err))
   })

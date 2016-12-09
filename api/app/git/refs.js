@@ -1,25 +1,40 @@
 import _ from 'lodash'
 import moment from 'moment-timezone'
-import mailer from 'nodemailer'
-import { findByUsername } from '../db/users'
-import { findByUserId, updateRefs } from '../db/repos'
-import { open } from '../git/repo'
-import { fetchAll } from '../git/remote'
+// import mailer from 'nodemailer'
+import Git from 'nodegit'
 import store from '../redux/store'
+import spitStats from './tp'
+import { flaggedRefs, updateRefs } from '../db/repos'
+import { openOrClone } from '../git/repo'
 import { intervalsActions } from '../redux/intervals'
-import { error, trace } from '../utils/logger'
+import { error, trace, warn } from '../utils/logger'
 
+const fetchOpts = {
+  callbacks: {
+    credentials: (url, username) => {
+      return Git.Cred.sshKeyNew(
+        username,
+        '/data/ssh/id_rsa.pub',
+        '/data/ssh/id_rsa',
+        ''
+      )
+    },
+    transferProgress: {
+      throttle: 50,
+      callback: spitStats
+    }
+  }
+}
 const secondsRe = /^(\d+)s$/
 const minutesRe = /^(\d+)m$/
 const hoursRe = /^(\d+)h$/
 const daysRe = /^(\d+)d$/
-const transporter = mailer.createTransport('smtps://jason.g.ozias%40gmail.com:ulvjszkcsouvwjln@smtp.gmail.com')
-const mailOptions = {
-  from: '"Jason Ozias" <jason.g.ozias@gmail.com>',
-  to: 'jason.g.ozias@gmail.com',
-  subject: 'Ellmak Notification',
-  html: '<h1>Testing</h1>'
-}
+// const transporter = mailer.createTransport('smtps://jason.g.ozias%40gmail.com:ulvjszkcsouvwjln@smtp.gmail.com')
+// const defaultMailOptions = {
+//   from: '"Jason Ozias" <jason.g.ozias@gmail.com>',
+//   to: 'jason.g.ozias@gmail.com'
+// }
+
 const applyFactor = (frequency, regex, factor) => {
   const matches = frequency.match(regex)
 
@@ -41,7 +56,6 @@ const toMs = (frequency) => {
     ms = applyFactor(frequency, daysRe, 86400000)
   }
 
-  trace(`Frequency (${frequency}): ${ms} ms`)
   return ms
 }
 
@@ -50,77 +64,89 @@ const updateInterval = (username, repoDoc) => {
   const { intervals } = store.getState().intervals
   const key = username + '-' + shortName
   const currVal = intervals[key]
+  const session = store.getState().sessions[username]
 
   if (currVal && !_.isEmpty(currVal)) {
     if (currVal.frequency !== frequency) {
       const { add, remove } = intervalsActions
-      trace('Clearing old inverval, setting up another due to new frequency')
+      warn('Clearing old inverval, setting up another due to new frequency')
       clearInterval(currVal.intRef)
       store.dispatch(remove(key))
+      trace(`checking repo '${shortName}' for user '${session.userId}' every ${frequency}`)
       store.dispatch(add(key, {
-        intRef: setInterval(checkRefs, toMs(frequency), username),
+        intRef: setInterval(checkRef, toMs(frequency), username, repoDoc),
         frequency: frequency
       }))
     }
   } else {
     const { add } = intervalsActions
+    trace(`checking repo '${shortName}' for user '${session.userId}' every ${frequency}`)
     store.dispatch(add(key, {
-      intRef: setInterval(checkRefs, toMs(frequency), username),
+      intRef: setInterval(checkRef, toMs(frequency), username, repoDoc),
       frequency: frequency
     }))
   }
 }
 
-const checkRefs = (username) => {
-  return new Promise((resolve, reject) => {
-    findByUsername(username).then(user => {
-      findByUserId(user._id).then(repoDocs => {
-        repoDocs.forEach(repoDoc => {
-          open(repoDoc).then(repo => {
-            fetchAll(repo).then(repo => {
-              repo.getReferences(3).then(refsArr => {
-                refsArr.forEach(ref => {
-                  repo.getReferenceCommit(ref).then(commit => {
-                    updateRef(username, user._id, repoDoc, ref, commit)
-                  }).catch(err => reject(err))
-                })
-                updateInterval(username, repoDoc)
-                resolve()
-              }).catch(err => reject(err))
-            }).catch(err => reject(err))
-          }).catch(err => reject(err))
+const checkRef = (username, repoDoc) => {
+  openOrClone(repoDoc).then(repo => {
+    repo.fetchAll(fetchOpts).then(() => {
+      repo.getReferences(3).then(refsArr => {
+        const refs = refsArr.map(ref => {
+          return () => {
+            if (ref.isBranch() === 1 || ref.isRemote() === 1) {
+              return repo.getReferenceCommit(ref).then(commit => {
+                return updateRef(username, repoDoc, ref, commit)
+              }).catch(err => {
+                error(err)
+                return Promise.reject()
+              })
+            } else {
+              return Promise.resolve()
+            }
+          }
         })
-      }).catch(err => reject(err))
-    }).catch(err => reject(err))
+
+        refs.reduce((chained, nextPromise) => { return chained.then(nextPromise) }, Promise.resolve()).then(() => {
+          const session = store.getState().sessions[username]
+          flaggedRefs(session.userId, repoDoc.shortName).then(doc => {
+            const refs = doc.refs
+            refs.forEach(ref => {
+              if (ref.flagged) {
+                trace(`Ref ${ref.ref} in ${repoDoc.shortName} is flagged`)
+              }
+            })
+          }).catch(err => error(err))
+        }).catch(err => error(err))
+      }).catch(err => error(err))
+    }).catch(err => error(err))
+  }).catch(err => error(err))
+}
+
+const updateRef = (username, repoDoc, ref, commit) => {
+  return new Promise((resolve, reject) => {
+    const session = store.getState().sessions[username]
+    const { refs, shortName } = repoDoc
+    const regexes = refs.map(refObj => new RegExp('.*' + refObj.ref + '.*'))
+
+    for (var i = 0; i < regexes.length; i++) {
+      const matchArr = regexes[i].exec(ref.toString())
+      if (matchArr) {
+        trace(`checking '${ref.toString()}' on repo '${shortName}' for user '${session.userId}'`)
+        const commitTime = moment(commit.timeMs())
+        const lastUpdatedTime = moment(refs[i].lastUpdated)
+
+        if (commitTime.isAfter(lastUpdatedTime)) {
+          trace(`'${ref.toString()}' has more recent commits`)
+          refs[i].lastUpdated = commit.timeMs()
+          refs[i].flagged = true
+          updateRefs(session.userId, shortName, refs).catch(err => reject(err))
+        }
+        break
+      }
+    }
+    resolve()
   })
 }
 
-const updateRef = (username, id, repoDoc, ref, commit) => {
-  const { refs, shortName } = repoDoc
-  const regexes = refs.map(refObj => new RegExp('.*' + refObj.ref + '.*'))
-
-  for (var i = 0; i < regexes.length; i++) {
-    const matchArr = regexes[i].exec(ref.toString())
-    if (matchArr) {
-      const commitTime = moment(commit.timeMs())
-      const lastUpdatedTime = moment(refs[i].lastUpdated)
-
-      if (commitTime.isAfter(lastUpdatedTime)) {
-        trace(`Updating ${refs[i].ref} with new value`)
-        refs[i].lastUpdated = commit.timeMs()
-        updateRefs(id, shortName, refs).then(() => {
-          transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-              error(err)
-            } else {
-              trace(`Message Sent: ${info.response}`)
-            }
-          })
-        }).catch(err => error(err))
-      }
-      break
-    }
-  }
-}
-
-export { checkRefs }
+export { checkRef, updateInterval }

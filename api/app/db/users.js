@@ -29,6 +29,16 @@ const findByUsername = (username) => {
   })
 }
 
+const findByObjWithUsername = (obj) => {
+  const { username } = obj
+  return new Promise((resolve, reject) => {
+    findByUsername(username).then((userDoc) => {
+      obj.user = userDoc
+      resolve(obj)
+    }).catch(err => reject(err))
+  })
+}
+
 const findIdByUsername = (username) => {
   return new Promise((resolve, reject) => {
     const db = store.getState().db
@@ -56,4 +66,4 @@ const findIdByUsername = (username) => {
   })
 }
 
-export { findByUsername, findIdByUsername }
+export { findByObjWithUsername, findByUsername, findIdByUsername }

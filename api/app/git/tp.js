@@ -14,6 +14,51 @@ const toPercent = (num, dem) => {
   return ((parseFloat(num) / parseFloat(dem)) * 100).toFixed(2)
 }
 
+const bytesToString = (bytes) => {
+  var currval = parseFloat(bytes)
+
+  for (var i = 0; currval > 1024; i++) {
+    currval = currval / 1024
+  }
+
+  const cvs = currval.toFixed(2)
+  var res
+  switch (i) {
+    case 0:
+      res = cvs + ' B'
+      break
+    case 1:
+      res = cvs + ' KiB'
+      break
+    case 2:
+      res = cvs + ' MiB'
+      break
+    case 3:
+      res = cvs + ' GiB'
+      break
+    case 4:
+      res = cvs + ' TiB'
+      break
+    case 5:
+      res = cvs + ' PiB'
+      break
+    case 6:
+      res = cvs + ' EiB'
+      break
+    case 7:
+      res = cvs + ' ZiB'
+      break
+    case 8:
+      res = cvs + ' YiB'
+      break
+    default:
+      res = cvs + ' ?iB'
+      break
+  }
+
+  return res
+}
+
 const spitStats = (stats) => {
   const spaces = '      '
   const id = stats['indexedDeltas']()
@@ -25,7 +70,7 @@ const spitStats = (stats) => {
   const to = stats['totalObjects']()
   const rop = pad(spaces, toPercent(ro, to), true)
   const iop = pad(spaces, toPercent(io, to), true)
-  const kb = (parseFloat(rb) / 1024).toFixed(2)
+  const btos = bytesToString(rb)
 
   var idpv = toPercent(id, td)
   if (isNaN(idpv)) {
@@ -33,7 +78,7 @@ const spitStats = (stats) => {
   }
   const idp = pad(spaces, idpv, true)
 
-  return trace(`Received: ${rop}% | Indexed: ${iop}% | Deltas: ${idp}% | Received: ${kb} KB`)
+  return trace(`Received: ${rop}% | Indexed: ${iop}% | Deltas: ${idp}% | Received: ${btos}`)
 }
 
 export default spitStats
