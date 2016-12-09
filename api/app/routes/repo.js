@@ -27,12 +27,8 @@ router.post('/', (req, res, next) => {
 
   findIdByUsername(username).then((id) => {
     upsertByShortName(id, req.body).then((doc) => {
-      openOrClone(doc).then(repo => {
-        return res.status(200).send(doc)
-      }).catch(err => {
-        error('Unable to clone repo:', err)
-        return res.status(500).send('Unable to clone repo')
-      })
+      openOrClone(doc).catch(err => error('Unable to clone repo:', err))
+      return res.status(200).send(doc)
     }).catch((err) => {
       error(err)
       return res.status(500).send('Unable to upsert repository information')
