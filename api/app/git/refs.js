@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import moment from 'moment-timezone'
-// import mailer from 'nodemailer'
+import mailer from 'nodemailer'
 import Git from 'nodegit'
 import store from '../redux/store'
 import spitStats from './tp'
@@ -29,11 +29,16 @@ const secondsRe = /^(\d+)s$/
 const minutesRe = /^(\d+)m$/
 const hoursRe = /^(\d+)h$/
 const daysRe = /^(\d+)d$/
-// const transporter = mailer.createTransport('smtps://jason.g.ozias%40gmail.com:ulvjszkcsouvwjln@smtp.gmail.com')
-// const defaultMailOptions = {
+// const transporter = mailer.createTransport('smtp://jason.g.ozias%40gmail.com:ulvjszkcsouvwjln@smtp.gmail.com')
+const transporter = mailer.createTransport('smtp://relay.veritiv.net')
+// const defaultMailOpts = {
 //   from: '"Jason Ozias" <jason.g.ozias@gmail.com>',
 //   to: 'jason.g.ozias@gmail.com'
 // }
+const defaultMailOpts = {
+  from: '"Jason Ozias" <Jason.Ozias@veritivcorp.com>',
+  to: 'jason.g.ozias@gmail.com'
+}
 
 const applyFactor = (frequency, regex, factor) => {
   const matches = frequency.match(regex)
@@ -109,13 +114,40 @@ const checkRef = (username, repoDoc) => {
 
         refs.reduce((chained, nextPromise) => { return chained.then(nextPromise) }, Promise.resolve()).then(() => {
           const session = store.getState().sessions[username]
-          flaggedRefs(session.userId, repoDoc.shortName).then(doc => {
+          const { userId } = session
+          const { shortName } = repoDoc
+
+          flaggedRefs(userId, shortName).then(doc => {
             const refs = doc.refs
-            refs.forEach(ref => {
-              if (ref.flagged) {
-                trace(`Ref ${ref.ref} in ${repoDoc.shortName} is flagged`)
-              }
-            })
+            const flaggedRefs = refs.filter(ref => { return ref.flagged })
+
+            if (flaggedRefs.length > 0) {
+              const bodyPrefix = `<h2>${shortName}</h2><p><ul>`
+              const bodySuffix = '</ul></p>'
+              var body = ''
+
+              flaggedRefs.forEach(ref => {
+                const lastUpdatedTime = moment(ref.lastUpdated).tz('America/New_York')
+                body += `<li>${ref.ref} last updated on ${lastUpdatedTime.format()}</li>`
+              })
+
+              const mailOpts = Object.assign({}, defaultMailOpts, {
+                subject: `[ellmak] ${shortName}`,
+                html: bodyPrefix + body + bodySuffix
+              })
+              transporter.sendMail(mailOpts, (err, info) => {
+                if (err) {
+                  error(err)
+                } else {
+                  trace(`email sent: ${info.response}`)
+                  const newRefs = refs.map(ref => {
+                    ref.flagged = false
+                    return ref
+                  })
+                  updateRefs(userId, shortName, newRefs).catch(err => error(err))
+                }
+              })
+            }
           }).catch(err => error(err))
         }).catch(err => error(err))
       }).catch(err => error(err))

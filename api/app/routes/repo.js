@@ -1,7 +1,8 @@
 import express from 'express'
-import { error } from '../utils/logger'
 import { findIdByUsername } from '../db/users'
 import { findByUserId, upsertByShortName } from '../db/repos'
+import { openOrClone } from '../git/repo'
+import { error } from '../utils/logger'
 
 const router = express.Router()
 
@@ -26,7 +27,12 @@ router.post('/', (req, res, next) => {
 
   findIdByUsername(username).then((id) => {
     upsertByShortName(id, req.body).then((doc) => {
-      return res.status(200).send(doc)
+      openOrClone(doc).then(repo => {
+        return res.status(200).send(doc)
+      }).catch(err => {
+        error('Unable to clone repo:', err)
+        return res.status(500).send('Unable to clone repo')
+      })
     }).catch((err) => {
       error(err)
       return res.status(500).send('Unable to upsert repository information')
