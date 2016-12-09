@@ -29,15 +29,10 @@ const secondsRe = /^(\d+)s$/
 const minutesRe = /^(\d+)m$/
 const hoursRe = /^(\d+)h$/
 const daysRe = /^(\d+)d$/
-// const transporter = mailer.createTransport('smtp://jason.g.ozias%40gmail.com:ulvjszkcsouvwjln@smtp.gmail.com')
-const transporter = mailer.createTransport('smtp://relay.veritiv.net')
-// const defaultMailOpts = {
-//   from: '"Jason Ozias" <jason.g.ozias@gmail.com>',
-//   to: 'jason.g.ozias@gmail.com'
-// }
+const transporter = mailer.createTransport(process.env.ELLMAK_SMTP_HOST)
 const defaultMailOpts = {
-  from: '"Jason Ozias" <Jason.Ozias@veritivcorp.com>',
-  to: 'jason.g.ozias@gmail.com'
+  from: process.env.ELLMAK_SMTP_FROM,
+  to: process.env.ELLMAK_SMTP_TO
 }
 
 const applyFactor = (frequency, regex, factor) => {
