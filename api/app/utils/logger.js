@@ -1,6 +1,7 @@
 import express from 'express'
 import winston from 'winston'
 import clc from 'cli-color'
+import store from '../redux/store'
 
 const app = express()
 
@@ -29,19 +30,12 @@ var winstonConfig = {
 
 winston.addColors(winstonConfig.colors)
 
-var level
-if (app.get('env') === 'development') {
-  level = 'trace'
-} else {
-  level = 'info'
-}
-
 const logger = new (winston.Logger)({
   levels: winstonConfig.levels,
   exitOnError: false,
   transports: [
     new (winston.transports.Console)({
-      level: level,
+      level: store.getState().log.level,
       colorize: true,
       timestamp: true,
       prettyPrint: true,
@@ -50,6 +44,21 @@ const logger = new (winston.Logger)({
       humanReadableUnhandledException: true
     })
   ]
+})
+
+const select = (state) => {
+  return state.log
+}
+
+let currentValue
+const unsubscribe = store.subscribe(() => {
+  let previousValue = currentValue || ''
+  currentValue = select(store.getState())
+
+  if (previousValue && previousValue !== currentValue) {
+    logger.warn('Setting new log level:', currentValue.level)
+    logger.transports.console.level = currentValue.level
+  }
 })
 
 const banner = () => {
@@ -87,4 +96,4 @@ const error = (message, ...rest) => {
   logger.error(yError(message), ...rest)
 }
 
-export { banner, debug, error, info, trace, warn }
+export { banner, debug, error, info, trace, unsubscribe, warn }

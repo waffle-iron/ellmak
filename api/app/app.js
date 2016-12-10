@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser'
 import bodyParser from 'body-parser'
 import routes from './routes/index'
 import auth from './routes/auth'
-import clone from './routes/clone'
+import log from './routes/log'
 import repo from './routes/repo'
 import { banner, error } from './utils/logger'
 
@@ -42,7 +42,7 @@ app.use('/api/v1', router)
 
 router.use('/', routes)
 router.use('/auth', auth)
-router.use('/clone', clone)
+router.use('/log', log)
 router.use('/repo', repo)
 
 // catch 404 and forward to error handler
