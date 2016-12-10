@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import express from 'express'
 import moment from 'moment-timezone'
 import mailer from 'nodemailer'
 import Git from 'nodegit'
@@ -8,6 +9,8 @@ import { flaggedRefs, updateRefs } from '../db/repos'
 import { openOrClone } from '../git/repo'
 import { intervalsActions } from '../redux/intervals'
 import { error, trace, warn } from '../utils/logger'
+
+const app = express()
 
 const fetchOpts = {
   callbacks: {
@@ -120,6 +123,8 @@ const checkRef = (username, repoDoc) => {
               const bodyPrefix = `<h2>${shortName}</h2><p><ul>`
               const bodySuffix = '</ul></p>'
               var body = ''
+              const version = '<h4>ellmak api ' + API_VERSION +
+                ', ellmak ui ' + UI_VERSION + ' (' + app.get('env') + ')</h4>'
 
               flaggedRefs.forEach(ref => {
                 const lastUpdatedTime = moment(ref.lastUpdated).tz('America/New_York')
@@ -128,7 +133,7 @@ const checkRef = (username, repoDoc) => {
 
               const mailOpts = Object.assign({}, defaultMailOpts, {
                 subject: `[ellmak] ${shortName}`,
-                html: bodyPrefix + body + bodySuffix
+                html: bodyPrefix + body + bodySuffix + version
               })
               transporter.sendMail(mailOpts, (err, info) => {
                 if (err) {

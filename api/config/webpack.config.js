@@ -6,7 +6,7 @@ var env = require('../env')
 
 const debug = _debug('app:webpack:config')
 const paths = env.utils_paths
-const {__DEV__, __PROD__, __TEST__} = env.globals
+const {__DEV__, __INT__, __STG__, __PROD__} = env.globals
 
 debug('Webpack Configuration')
 
@@ -56,14 +56,22 @@ config = {
 }
 
 if (__DEV__) {
-  debug('Enable plugins for live development (NoErrors).')
+  debug('Enable plugins for live development (Define, NoErrors).')
   config.plugins.push(
-    new webpack.NoErrorsPlugin()
+    new webpack.NoErrorsPlugin(),
+    new webpack.DefinePlugin({
+      __DEV__: __DEV__,
+      __INT__: __INT__,
+      __STG__: __STG__,
+      __PROD__: __PROD__,
+      API_VERSION: JSON.stringify("v" + require("../package.json").version),
+      UI_VERSION: JSON.stringify("v" + require("../../ui/package.json").version)
+    })
   )
 }
 
 if (__PROD__) {
-  debug('Enable plugins for production (OccurenceOrder, Dedupe, & UglifyJS).')
+  debug('Enable plugins for production (Define, OccurenceOrder, Dedupe, & UglifyJS).')
   config.plugins.push(
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.DedupePlugin(),
@@ -73,6 +81,14 @@ if (__PROD__) {
         dead_code: true,
         warnings: false
       }
+    }),
+    new webpack.DefinePlugin({
+      __DEV__: __DEV__,
+      __INT__: __INT__,
+      __STG__: __STG__,
+      __PROD__: __PROD__,
+      API_VERSION: JSON.stringify("v" + require("../package.json").version),
+      UI_VERSION: JSON.stringify("v" + require("../../ui/package.json").version)
     })
   )
 }

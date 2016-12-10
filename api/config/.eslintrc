@@ -3,12 +3,12 @@
     "standard",
   ],
   "globals" : {
-    "Action"       : false,
-    "__DEV__"      : false,
-    "__PROD__"     : false,
-    "__DEBUG__"    : false,
-    "__DEBUG_NEW_WINDOW__" : false,
-    "__BASENAME__" : false
+    "__DEV__"    : false,
+    "__INT__"    : false,
+    "__STG__"    : false,
+    "__PROD__"   : false,
+    "API_VERSION": false,
+    "UI_VERSION" : false
   },
   "rules": {
     "semi" : [2, "never"],
