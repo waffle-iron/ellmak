@@ -62,14 +62,14 @@ const bytesToString = (bytes) => {
 const spitStats = (stats) => {
   const spaces = '      '
   const id = stats['indexedDeltas']()
-  const io = stats['indexedObjects']()
+  // const io = stats['indexedObjects']()
   // const lo = stats['localObjects']()
   const rb = stats['receivedBytes']()
   const ro = stats['receivedObjects']()
   const td = stats['totalDeltas']()
   const to = stats['totalObjects']()
   const rop = pad(spaces, toPercent(ro, to), true)
-  const iop = pad(spaces, toPercent(io, to), true)
+  // const iop = pad(spaces, toPercent(io, to), true)
   const btos = bytesToString(rb)
 
   var idpv = toPercent(id, td)
@@ -78,7 +78,13 @@ const spitStats = (stats) => {
   }
   const idp = pad(spaces, idpv, true)
 
-  return trace(`Received: ${rop}% | Indexed: ${iop}% | Deltas: ${idp}% | Received: ${btos}`)
+  if (ro < to) {
+    return trace(`Receiving Objects: ${rop}% (${ro}/${to}),  ${btos} | x.xx MiB/s`)
+  } else if (id < td) {
+    return trace(`Resolving Deltas: ${idp}% (${id}/${td})`)
+  } else if (id === td) {
+    return trace(`Resolving Deltas: ${idp}% (${id}/${td}), done.`)
+  }
 }
 
 export default spitStats
